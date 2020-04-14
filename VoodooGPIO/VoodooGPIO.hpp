@@ -158,6 +158,16 @@ struct intel_pinctrl_context {
     struct intel_community_context *communities;
 };
 
+class VoodooGPIORegisteredPin : public OSObject {
+OSDeclareDefaultStructors(VoodooGPIORegisteredPin);
+public:
+    int pin;
+    int pad_pin_base;
+    IOVirtualAddress pending_address;
+    IOVirtualAddress enabled_address;
+    intel_community *community;
+};
+
 /* Additional features supported by the hardware */
 #define PINCTRL_FEATURE_DEBOUNCE    1
 #define PINCTRL_FEATURE_1K_PD       2
@@ -211,6 +221,7 @@ class VoodooGPIO : public IOService {
     IOWorkLoop *workLoop = nullptr;
     IOInterruptEventSource *interruptSource = nullptr;
     IOCommandGate* command_gate = nullptr;
+    OSArray* registered_pin_list = nullptr;
     bool isInterruptBusy;
     UInt32 nInactiveCommunities;
 
@@ -244,6 +255,7 @@ class VoodooGPIO : public IOService {
     void intel_pinctrl_resume();
 
     void intel_gpio_community_irq_handler(struct intel_community *community, bool *firstdelay);
+    void intel_gpio_pin_irq_handler(VoodooGPIORegisteredPin *pin);
 
     void InterruptOccurred(OSObject *owner, IOInterruptEventSource *src, int intCount);
     IOReturn interruptOccurredGated();
