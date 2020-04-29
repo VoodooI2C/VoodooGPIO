@@ -219,7 +219,6 @@ class VoodooGPIO : public IOService {
     bool controllerIsAwake;
 
     IOWorkLoop *workLoop = nullptr;
-    IOInterruptEventSource *interruptSource = nullptr;
     IOCommandGate* command_gate = nullptr;
     OSArray* registered_pin_list = nullptr;
     bool isInterruptBusy;
