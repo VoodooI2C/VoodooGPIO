@@ -78,6 +78,9 @@ OSDefineMetaClassAndStructors(VoodooGPIO, IOService);
 #define pin_to_padno(c, p)      ((p) - (c)->pin_base)
 #define padgroup_offset(g, p)   ((p) - (g)->base)
 
+// Log only if current thread is interruptible, otherwise we will get a panic.
+#define TryLog(args...) do { if (ml_get_interrupts_enabled()) IOLog(args); } while (0)
+
 UInt32 VoodooGPIO::readl(IOVirtualAddress addr) {
     return *(const volatile UInt32 *)addr;
 }
@@ -114,7 +117,7 @@ struct intel_community *VoodooGPIO::intel_get_community(unsigned pin) {
             return community;
     }
 
-    IOLog("%s::Failed to find community for pin %u", getName(), pin);
+    TryLog("%s::Failed to find community for pin %u", getName(), pin);
     return NULL;
 }
 
@@ -125,7 +128,7 @@ struct intel_padgroup *VoodooGPIO::intel_community_get_padgroup(struct intel_com
             return padgrp;
     }
 
-    IOLog("%s::Failed to find padgroup for pin %u", getName(), pin);
+    TryLog("%s::Failed to find padgroup for pin %u", getName(), pin);
     return NULL;
 }
 
@@ -290,7 +293,7 @@ SInt32 VoodooGPIO::intel_gpio_to_pin(UInt32 offset,
         }
     }
 
-    IOLog("%s::Failed getting hardware pin for GPIO pin %u", getName(), offset);
+    TryLog("%s::Failed getting hardware pin for GPIO pin %u", getName(), offset);
     return -1;
 }
 
@@ -345,7 +348,7 @@ bool VoodooGPIO::intel_gpio_irq_set_type(unsigned pin, unsigned type) {
      * updated by the host controller hardware.
      */
     if (intel_pad_acpi_mode(pin)) {
-        IOLog("%s:: pin %u cannot be used as IRQ\n", getName(), pin);
+        TryLog("%s:: pin %u cannot be used as IRQ\n", getName(), pin);
         return false;
     }
     
