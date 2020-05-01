@@ -736,7 +736,6 @@ void VoodooGPIO::stop(IOService *provider) {
             IOLog("%s interrupt has not been unregistered by client", getName());
             getProvider()->unregisterInterrupt(0);
         }
-        registered_pin_list->flushCollection();
         OSSafeReleaseNULL(registered_pin_list);
     }
     
@@ -833,13 +832,14 @@ void VoodooGPIO::intel_gpio_community_irq_handler(struct intel_community *commun
 }
 
 void VoodooGPIO::intel_gpio_pin_irq_handler(VoodooGPIORegisteredPin *pin) {
-    if (!pin || !pin->pending_address || !pin->enabled_address) {
+    if (!pin || !pin->pad_group || !pin->community) {
         return;
     }
 
     unsigned long pending, enabled;
-    pending = readl(pin->pending_address);
-    enabled = readl(pin->enabled_address);
+    IOVirtualAddress pending_address = pin->community->regs + GPI_IS + pin->pad_group->reg_num * 4;
+    pending = readl(pending_address);
+    enabled = readl(pin->community->regs + pin->community->ie_offset + pin->pad_group->reg_num * 4);
 
     /* Only interrupts that are enabled */
     pending &= enabled;
@@ -848,20 +848,23 @@ void VoodooGPIO::intel_gpio_pin_irq_handler(VoodooGPIORegisteredPin *pin) {
         return;
     }
 
-    int i = pin->pin - pin->pad_pin_base;
-    if (!((pending >> i) & 0x1)) {
+    int pad_group_i = pin->hw_pin - pin->pad_group->base;
+    if (!((pending >> pad_group_i) & 0x1)) {
         return;
     }
 
-    OSObject *owner = pin->community->pinInterruptActionOwners[pin->pin];
+    int community_i = pin->hw_pin - pin->community->pin_base;
+    OSObject *owner = pin->community->pinInterruptActionOwners[community_i];
     if (owner) {
-        IOInterruptAction handler = pin->community->pinInterruptAction[pin->pin];
-        void *refcon = pin->community->pinInterruptRefcons[pin->pin];
-        handler(owner, refcon, this, pin->pin);
+        IOInterruptAction handler = pin->community->pinInterruptAction[community_i];
+        void *refcon = pin->community->pinInterruptRefcons[community_i];
+        handler(owner, refcon, this, community_i);
     }
 
-    /* Clear interrupt status */
-    writel(static_cast<UInt32>(BIT(i)), pin->pending_address);
+    if (pin->community->interruptTypes[community_i] & IRQ_TYPE_LEVEL_MASK) {
+        /* For Level interrupts, we need to clear the interrupt status or we get too many interrupts */
+        writel(static_cast<UInt32>(BIT(pad_group_i)), pending_address);
+    }
 }
 
 /**
@@ -894,10 +897,8 @@ IOReturn VoodooGPIO::registerInterrupt(int pin, OSObject *target, IOInterruptAct
         return kIOReturnNoResources;
 
     if (VoodooGPIORegisteredPin* registered_pin = OSTypeAlloc(VoodooGPIORegisteredPin)) {
-        registered_pin->pin = hw_pin - community->pin_base;
-        registered_pin->pad_pin_base = padgrp->base - community->pin_base;
-        registered_pin->pending_address = community->regs + GPI_IS + padgrp->reg_num * 4;
-        registered_pin->enabled_address = community->regs + community->ie_offset + padgrp->reg_num * 4;
+        registered_pin->hw_pin = hw_pin;
+        registered_pin->pad_group = padgrp;
         registered_pin->community = community;
         if (!registered_pin_list->setObject(registered_pin)) {
             IOLog("%s unable to register pin into list", getName());
@@ -941,7 +942,7 @@ IOReturn VoodooGPIO::unregisterInterrupt(int pin) {
 
     for (int i = registered_pin_list->getCount() - 1; i >= 0; i--) {
         VoodooGPIORegisteredPin* registered_pin = OSDynamicCast(VoodooGPIORegisteredPin, registered_pin_list->getObject(i));
-        if (registered_pin && registered_pin->pin == hw_pin - community->pin_base) {
+        if (registered_pin && registered_pin->hw_pin == hw_pin) {
             registered_pin_list->removeObject(i);
         }
     }

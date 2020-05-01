@@ -161,10 +161,8 @@ struct intel_pinctrl_context {
 class VoodooGPIORegisteredPin : public OSObject {
 OSDeclareDefaultStructors(VoodooGPIORegisteredPin);
 public:
-    int pin;
-    int pad_pin_base;
-    IOVirtualAddress pending_address;
-    IOVirtualAddress enabled_address;
+    int hw_pin;
+    intel_padgroup *pad_group;
     intel_community *community;
 };
 
