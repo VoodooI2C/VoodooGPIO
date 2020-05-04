@@ -8,7 +8,6 @@
 
 #include "VoodooGPIO.hpp"
 
-OSDefineMetaClassAndStructors(VoodooGPIORegisteredPin, OSObject);
 OSDefineMetaClassAndStructors(VoodooGPIO, IOService);
 
 #define kIOPMPowerOff 0
@@ -831,15 +830,17 @@ void VoodooGPIO::intel_gpio_community_irq_handler(struct intel_community *commun
     }
 }
 
-void VoodooGPIO::intel_gpio_pin_irq_handler(VoodooGPIORegisteredPin *pin) {
-    if (!pin || !pin->pad_group || !pin->community) {
+void VoodooGPIO::intel_gpio_pin_irq_handler(unsigned hw_pin) {
+    intel_community *community = intel_get_community(hw_pin);
+    intel_padgroup *pad_group = NULL;
+    if (!community || !(pad_group = intel_community_get_padgroup(community, hw_pin))) {
         return;
     }
 
     unsigned long pending, enabled;
-    IOVirtualAddress pending_address = pin->community->regs + GPI_IS + pin->pad_group->reg_num * 4;
+    IOVirtualAddress pending_address = community->regs + GPI_IS + pad_group->reg_num * 4;
     pending = readl(pending_address);
-    enabled = readl(pin->community->regs + pin->community->ie_offset + pin->pad_group->reg_num * 4);
+    enabled = readl(community->regs + community->ie_offset + pad_group->reg_num * 4);
 
     /* Only interrupts that are enabled */
     pending &= enabled;
@@ -848,20 +849,20 @@ void VoodooGPIO::intel_gpio_pin_irq_handler(VoodooGPIORegisteredPin *pin) {
         return;
     }
 
-    int pad_group_i = pin->hw_pin - pin->pad_group->base;
+    int pad_group_i = hw_pin - pad_group->base;
     if (!((pending >> pad_group_i) & 0x1)) {
         return;
     }
 
-    int community_i = pin->hw_pin - pin->community->pin_base;
-    OSObject *owner = pin->community->pinInterruptActionOwners[community_i];
+    int community_i = hw_pin - community->pin_base;
+    OSObject *owner = community->pinInterruptActionOwners[community_i];
     if (owner) {
-        IOInterruptAction handler = pin->community->pinInterruptAction[community_i];
-        void *refcon = pin->community->pinInterruptRefcons[community_i];
+        IOInterruptAction handler = community->pinInterruptAction[community_i];
+        void *refcon = community->pinInterruptRefcons[community_i];
         handler(owner, refcon, this, community_i);
     }
 
-    if (pin->community->interruptTypes[community_i] & IRQ_TYPE_LEVEL_MASK) {
+    if (community->interruptTypes[community_i] & IRQ_TYPE_LEVEL_MASK) {
         /* For Level interrupts, we need to clear the interrupt status or we get too many interrupts */
         writel(static_cast<UInt32>(BIT(pad_group_i)), pending_address);
     }
@@ -896,10 +897,7 @@ IOReturn VoodooGPIO::registerInterrupt(int pin, OSObject *target, IOInterruptAct
     if (community->pinInterruptActionOwners[communityidx])
         return kIOReturnNoResources;
 
-    if (VoodooGPIORegisteredPin* registered_pin = OSTypeAlloc(VoodooGPIORegisteredPin)) {
-        registered_pin->hw_pin = hw_pin;
-        registered_pin->pad_group = padgrp;
-        registered_pin->community = community;
+    if (OSNumber* registered_pin = OSNumber::withNumber(hw_pin, 32)) {
         if (!registered_pin_list->setObject(registered_pin)) {
             IOLog("%s unable to register pin into list", getName());
             return kIOReturnNoResources;
@@ -941,8 +939,8 @@ IOReturn VoodooGPIO::unregisterInterrupt(int pin) {
     community->pinInterruptRefcons[communityidx] = NULL;
 
     for (int i = registered_pin_list->getCount() - 1; i >= 0; i--) {
-        VoodooGPIORegisteredPin* registered_pin = OSDynamicCast(VoodooGPIORegisteredPin, registered_pin_list->getObject(i));
-        if (registered_pin && registered_pin->hw_pin == hw_pin) {
+        OSNumber* registered_pin = OSDynamicCast(OSNumber, registered_pin_list->getObject(i));
+        if (registered_pin && registered_pin->unsigned32BitValue() == hw_pin) {
             registered_pin_list->removeObject(i);
         }
     }
@@ -1002,9 +1000,9 @@ IOReturn VoodooGPIO::setInterruptTypeForPin(int pin, int type) {
 
 void VoodooGPIO::InterruptOccurred(OSObject *owner, IOInterruptEventSource *src, int intCount) {
     for (int i = 0; i < registered_pin_list->getCount(); i++) {
-        VoodooGPIORegisteredPin* registered_pin = OSDynamicCast(VoodooGPIORegisteredPin, registered_pin_list->getObject(i));
+        OSNumber* registered_pin = OSDynamicCast(OSNumber, registered_pin_list->getObject(i));
         if (registered_pin) {
-            intel_gpio_pin_irq_handler(registered_pin);
+            intel_gpio_pin_irq_handler(registered_pin->unsigned32BitValue());
         }
     }
 }
