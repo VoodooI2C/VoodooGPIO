@@ -732,7 +732,7 @@ void VoodooGPIO::stop(IOService *provider) {
 
     if (registered_pin_list) {
         if (registered_pin_list->getCount() > 0) {
-            IOLog("%s interrupt has not been unregistered by client", getName());
+            IOLog("%s::Interrupt has not been unregistered by client", getName());
             getProvider()->unregisterInterrupt(0);
         }
         OSSafeReleaseNULL(registered_pin_list);
@@ -899,7 +899,7 @@ IOReturn VoodooGPIO::registerInterrupt(int pin, OSObject *target, IOInterruptAct
 
     if (OSNumber* registered_pin = OSNumber::withNumber(hw_pin, 32)) {
         if (!registered_pin_list->setObject(registered_pin)) {
-            IOLog("%s unable to register pin into list", getName());
+            IOLog("%s::Unable to register pin into list", getName());
             registered_pin->release();
             return kIOReturnNoResources;
         }
