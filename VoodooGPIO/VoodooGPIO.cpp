@@ -900,6 +900,7 @@ IOReturn VoodooGPIO::registerInterrupt(int pin, OSObject *target, IOInterruptAct
     if (OSNumber* registered_pin = OSNumber::withNumber(hw_pin, 32)) {
         if (!registered_pin_list->setObject(registered_pin)) {
             IOLog("%s unable to register pin into list", getName());
+            registered_pin->release();
             return kIOReturnNoResources;
         }
         registered_pin->release();
@@ -909,11 +910,11 @@ IOReturn VoodooGPIO::registerInterrupt(int pin, OSObject *target, IOInterruptAct
         community->pinInterruptRefcons[communityidx] = refcon;
         *community->isActiveCommunity = true;
     } else {
-        IOLog("%s unable to allocate interrupt pin", getName());
+        IOLog("%s::Unable to allocate interrupt pin", getName());
         return kIOReturnNoResources;
     }
 
-    IOLog("%s::Successfully register hardware pin 0x%02X for GPIO IRQ pin 0x%02X\n", getName(), hw_pin, pin);
+    IOLog("%s::Successfully registered hardware pin 0x%02X for GPIO IRQ pin 0x%02X\n", getName(), hw_pin, pin);
 
     if (registered_pin_list->getCount() == 1) {
         return getProvider()->registerInterrupt(0, this, OSMemberFunctionCast(IOInterruptAction, this, &VoodooGPIO::InterruptOccurred));
@@ -1000,8 +1001,7 @@ IOReturn VoodooGPIO::setInterruptTypeForPin(int pin, int type) {
 
 void VoodooGPIO::InterruptOccurred(OSObject *owner, IOInterruptEventSource *src, int intCount) {
     for (int i = 0; i < registered_pin_list->getCount(); i++) {
-        OSNumber* registered_pin = OSDynamicCast(OSNumber, registered_pin_list->getObject(i));
-        if (registered_pin) {
+        if (OSNumber* registered_pin = OSDynamicCast(OSNumber, registered_pin_list->getObject(i))) {
             intel_gpio_pin_irq_handler(registered_pin->unsigned32BitValue());
         }
     }
