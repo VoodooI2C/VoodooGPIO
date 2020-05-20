@@ -816,7 +816,7 @@ void VoodooGPIO::intel_gpio_community_irq_handler(struct intel_community *commun
                 if (owner) {
                     IOInterruptAction handler = community->pinInterruptAction[pin];
                     void *refcon = community->pinInterruptRefcons[pin];
-                    handler(owner, refcon, this, pin);
+                    handler(owner, refcon, this, pin - padgrp->base + padgrp->gpio_base);
                     if (*firstdelay) {
                         *firstdelay = false;
                         IODelay(25 * nInactiveCommunities);  // Reduce CPU load. 25~30us per inactive community was reasonable.
@@ -859,7 +859,7 @@ void VoodooGPIO::intel_gpio_pin_irq_handler(unsigned hw_pin) {
     if (owner) {
         IOInterruptAction handler = community->pinInterruptAction[community_i];
         void *refcon = community->pinInterruptRefcons[community_i];
-        handler(owner, refcon, this, community_i);
+        handler(owner, refcon, this, pad_group_i + pad_group->gpio_base);
     }
 
     if (community->interruptTypes[community_i] & IRQ_TYPE_LEVEL_MASK) {
@@ -999,7 +999,7 @@ IOReturn VoodooGPIO::setInterruptTypeForPin(int pin, int type) {
     return kIOReturnSuccess;
 }
 
-void VoodooGPIO::InterruptOccurred(OSObject *owner, IOInterruptEventSource *src, int intCount) {
+void VoodooGPIO::InterruptOccurred(void *refCon, IOService *nub, int source) {
     for (int i = 0; i < registered_pin_list->getCount(); i++) {
         if (OSNumber* registered_pin = OSDynamicCast(OSNumber, registered_pin_list->getObject(i))) {
             intel_gpio_pin_irq_handler(registered_pin->unsigned32BitValue());
