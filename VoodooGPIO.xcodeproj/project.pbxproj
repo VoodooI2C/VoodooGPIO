@@ -17,6 +17,8 @@
 		F142D11C1F42C255007AA5C6 /* VoodooGPIOSunrisePointLP.hpp in Headers */ = {isa = PBXBuildFile; fileRef = F142D11A1F42C255007AA5C6 /* VoodooGPIOSunrisePointLP.hpp */; };
 		F1F172C91F42263A00AD98FA /* VoodooGPIO.hpp in Headers */ = {isa = PBXBuildFile; fileRef = F1F172C81F42263A00AD98FA /* VoodooGPIO.hpp */; };
 		F1F172CB1F42263A00AD98FA /* VoodooGPIO.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F1F172CA1F42263A00AD98FA /* VoodooGPIO.cpp */; };
+		FBE40CF824E2373400CDC4ED /* VoodooGPIOIceLakeLP.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FBE40CF624E2373400CDC4ED /* VoodooGPIOIceLakeLP.cpp */; };
+		FBE40CF924E2373400CDC4ED /* VoodooGPIOIceLakeLP.hpp in Headers */ = {isa = PBXBuildFile; fileRef = FBE40CF724E2373400CDC4ED /* VoodooGPIOIceLakeLP.hpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -33,6 +35,8 @@
 		F1F172C81F42263A00AD98FA /* VoodooGPIO.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = VoodooGPIO.hpp; sourceTree = "<group>"; };
 		F1F172CA1F42263A00AD98FA /* VoodooGPIO.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = VoodooGPIO.cpp; sourceTree = "<group>"; };
 		F1F172CC1F42263A00AD98FA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		FBE40CF624E2373400CDC4ED /* VoodooGPIOIceLakeLP.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = VoodooGPIOIceLakeLP.cpp; sourceTree = "<group>"; };
+		FBE40CF724E2373400CDC4ED /* VoodooGPIOIceLakeLP.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = VoodooGPIOIceLakeLP.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -101,6 +105,7 @@
 		F1F172C71F42263A00AD98FA /* VoodooGPIO */ = {
 			isa = PBXGroup;
 			children = (
+				FBE40CF524E2366B00CDC4ED /* IceLake-LP */,
 				ACD8275F219D06AF0041DE1B /* CannonLake-H */,
 				ACD8275A219D03290041DE1B /* CannonLake-LP */,
 				F142D1181F42C244007AA5C6 /* SunrisePoint-LP */,
@@ -113,6 +118,15 @@
 			path = VoodooGPIO;
 			sourceTree = "<group>";
 		};
+		FBE40CF524E2366B00CDC4ED /* IceLake-LP */ = {
+			isa = PBXGroup;
+			children = (
+				FBE40CF624E2373400CDC4ED /* VoodooGPIOIceLakeLP.cpp */,
+				FBE40CF724E2373400CDC4ED /* VoodooGPIOIceLakeLP.hpp */,
+			);
+			path = "IceLake-LP";
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -120,6 +134,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FBE40CF924E2373400CDC4ED /* VoodooGPIOIceLakeLP.hpp in Headers */,
 				F1F172C91F42263A00AD98FA /* VoodooGPIO.hpp in Headers */,
 				F10447AF1F4278CD00BA5A85 /* VoodooGPIOSunrisePointH.hpp in Headers */,
 				F142D11C1F42C255007AA5C6 /* VoodooGPIOSunrisePointLP.hpp in Headers */,
@@ -200,6 +215,7 @@
 				F10447AE1F4278CD00BA5A85 /* VoodooGPIOSunrisePointH.cpp in Sources */,
 				F142D11B1F42C255007AA5C6 /* VoodooGPIOSunrisePointLP.cpp in Sources */,
 				ACD8275D219D034F0041DE1B /* VoodooGPIOCannonLakeLP.cpp in Sources */,
+				FBE40CF824E2373400CDC4ED /* VoodooGPIOIceLakeLP.cpp in Sources */,
 				ACD82762219D06C20041DE1B /* VoodooGPIOCannonLakeH.cpp in Sources */,
 				F1F172CB1F42263A00AD98FA /* VoodooGPIO.cpp in Sources */,
 			);
