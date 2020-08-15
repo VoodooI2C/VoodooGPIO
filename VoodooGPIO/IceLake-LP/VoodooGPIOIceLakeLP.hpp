@@ -11,32 +11,32 @@
 #ifndef VoodooGPIOIceLakeLP_h
 #define VoodooGPIOIceLakeLP_h
 
-#define ICL_PAD_OWN    0x020
-#define ICL_PADCFGLOCK    0x080
-#define ICL_HOSTSW_OWN    0x0b0
-#define ICL_GPI_IS    0x100
-#define ICL_GPI_IE    0x110
+#define ICL_PAD_OWN         0x020
+#define ICL_PADCFGLOCK      0x080
+#define ICL_HOSTSW_OWN      0x0b0
+#define ICL_GPI_IS          0x100
+#define ICL_GPI_IE          0x110
 
-#define ICL_GPP(r, s, e, g)                \
-    {                        \
-        .reg_num = (r),                \
+#define ICL_GPP(r, s, e, g)         \
+    {                               \
+        .reg_num = (r),             \
         .base = (s),                \
-        .size = ((e) - (s) + 1),        \
-        .gpio_base = (g),            \
+        .size = ((e) - (s) + 1),    \
+        .gpio_base = (g),           \
     }
 #define ICL_NO_GPIO     -1
 
-#define ICL_COMMUNITY(b, s, e, g)            \
-    {                        \
-        .barno = (b),                \
-        .padown_offset = ICL_PAD_OWN,        \
+#define ICL_COMMUNITY(b, s, e, g)               \
+    {                                           \
+        .barno = (b),                           \
+        .padown_offset = ICL_PAD_OWN,           \
         .padcfglock_offset = ICL_PADCFGLOCK,    \
-        .hostown_offset = ICL_HOSTSW_OWN,    \
-        .ie_offset = ICL_GPI_IE,        \
-        .pin_base = (s),            \
-        .npins = ((e) - (s) + 1),        \
-        .gpps = (g),                \
-        .ngpps = ARRAY_SIZE(g),            \
+        .hostown_offset = ICL_HOSTSW_OWN,       \
+        .ie_offset = ICL_GPI_IE,                \
+        .pin_base = (s),                        \
+        .npins = ((e) - (s) + 1),               \
+        .gpps = (g),                            \
+        .ngpps = ARRAY_SIZE(g),                 \
     }
 
 /* Ice Lake-LP */
@@ -354,33 +354,6 @@ static struct intel_function icllp_functions[] = {
     FUNCTION((char *)"uart1", icllp_uart1_groups),
     FUNCTION((char *)"uart2", icllp_uart2_groups),
 };
-
-//static const struct intel_pinctrl_soc_data icllp_soc_data = {
-//    .pins = icllp_pins,
-//    .npins = ARRAY_SIZE(icllp_pins),
-//    .groups = icllp_groups,
-//    .ngroups = ARRAY_SIZE(icllp_groups),
-//    .functions = icllp_functions,
-//    .nfunctions = ARRAY_SIZE(icllp_functions),
-//    .communities = icllp_communities,
-//    .ncommunities = ARRAY_SIZE(icllp_communities),
-//};
-//
-//static INTEL_PINCTRL_PM_OPS(icl_pinctrl_pm_ops);
-//
-//static const struct acpi_device_id icl_pinctrl_acpi_match[] = {
-//    { "INT3455", (kernel_ulong_t)&icllp_soc_data },
-//    { }
-//};
-//
-//static struct platform_driver icl_pinctrl_driver = {
-//    .probe = intel_pinctrl_probe_by_hid,
-//    .driver = {
-//        .name = "icelake-pinctrl",
-//        .acpi_match_table = icl_pinctrl_acpi_match,
-//        .pm = &icl_pinctrl_pm_ops,
-//    },
-//};
 
 static struct intel_padgroup icllp_community0_gpps[] = {
     ICL_GPP(0, 0, 7, 0),                /* GPP_G */
