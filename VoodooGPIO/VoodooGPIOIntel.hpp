@@ -183,7 +183,7 @@ struct intel_pinctrl_context {
     .ngroups = ARRAY_SIZE((g)), \
 }
 
-class VoodooGPIOIntel : public IOService {
+class VoodooGPIOIntel : public VoodooGPIO {
     OSDeclareDefaultStructors(VoodooGPIOIntel);
 
 protected:
@@ -198,16 +198,7 @@ protected:
 
  private:
     struct intel_pinctrl_context context;
-
-    bool controllerIsAwake;
-
-    IOWorkLoop *workLoop = nullptr;
-    IOCommandGate* command_gate = nullptr;
-    OSArray* registered_pin_list = nullptr;
-    bool isInterruptBusy;
     UInt32 nInactiveCommunities;
-
-    IOWorkLoop* getWorkLoop();
     
     struct intel_community *intel_get_community(unsigned pin);
     struct intel_padgroup *intel_community_get_padgroup(struct intel_community *community, unsigned pin);
