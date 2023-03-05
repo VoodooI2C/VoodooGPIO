@@ -8,7 +8,7 @@
 
 #include "VoodooGPIOCannonLakeLP.hpp"
 
-OSDefineMetaClassAndStructors(VoodooGPIOCannonLakeLP, VoodooGPIO);
+OSDefineMetaClassAndStructors(VoodooGPIOCannonLakeLP, VoodooGPIOIntel);
 
 bool VoodooGPIOCannonLakeLP::start(IOService *provider) {
     this->pins = cnllp_pins;
@@ -22,5 +22,5 @@ bool VoodooGPIOCannonLakeLP::start(IOService *provider) {
 
     IOLog("%s::Loading GPIO Data for CannonLake-LP\n", getName());
 
-    return VoodooGPIO::start(provider);
+    return VoodooGPIOIntel::start(provider);
 }

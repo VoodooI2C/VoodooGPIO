@@ -8,7 +8,7 @@
 
 #include "VoodooGPIOSunrisePointH.hpp"
 
-OSDefineMetaClassAndStructors(VoodooGPIOSunrisePointH, VoodooGPIO);
+OSDefineMetaClassAndStructors(VoodooGPIOSunrisePointH, VoodooGPIOIntel);
 
 bool VoodooGPIOSunrisePointH::start(IOService *provider) {
     this->pins = spth_pins;
@@ -22,5 +22,5 @@ bool VoodooGPIOSunrisePointH::start(IOService *provider) {
 
     IOLog("%s::Loading GPIO Data for SunrisePoint-H\n", getName());
 
-    return VoodooGPIO::start(provider);
+    return VoodooGPIOIntel::start(provider);
 }

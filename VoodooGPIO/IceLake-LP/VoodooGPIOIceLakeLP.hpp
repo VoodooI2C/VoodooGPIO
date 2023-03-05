@@ -6,10 +6,9 @@
 //  Copyright © 2018 Alexandre Daoud. All rights reserved.
 //
 
-#include "../VoodooGPIO.hpp"
-
 #ifndef VoodooGPIOIceLakeLP_h
 #define VoodooGPIOIceLakeLP_h
+#include "../VoodooGPIOIntel.hpp"
 
 #define ICL_PAD_OWN         0x020
 #define ICL_PADCFGLOCK      0x080
@@ -387,7 +386,7 @@ static struct intel_community icllp_communities[] = {
     ICL_COMMUNITY(3, 216, 240, icllp_community5_gpps),
 };
 
-class VoodooGPIOIceLakeLP : public VoodooGPIO {
+class VoodooGPIOIceLakeLP : public VoodooGPIOIntel {
     OSDeclareDefaultStructors(VoodooGPIOIceLakeLP);
 
     bool start(IOService *provider) override;

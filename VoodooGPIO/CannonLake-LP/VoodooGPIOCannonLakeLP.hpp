@@ -6,10 +6,9 @@
 //  Copyright © 2018 Alexandre Daoud. All rights reserved.
 //
 
-#include "../VoodooGPIO.hpp"
-
 #ifndef VoodooGPIOCannonLakeLP_h
 #define VoodooGPIOCannonLakeLP_h
+#include "../VoodooGPIOIntel.hpp"
 
 #define CNL_PAD_OWN         0x020
 #define CNL_PADCFGLOCK      0x080
@@ -391,7 +390,7 @@ static struct intel_community cnllp_communities[] = {
     CNLLP_COMMUNITY(2, 181, 243, cnllp_community4_gpps),
 };
 
-class VoodooGPIOCannonLakeLP : public VoodooGPIO {
+class VoodooGPIOCannonLakeLP : public VoodooGPIOIntel {
     OSDeclareDefaultStructors(VoodooGPIOCannonLakeLP);
 
     bool start(IOService *provider) override;

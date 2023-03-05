@@ -6,10 +6,9 @@
 //  Copyright © 2017 CoolStar. All rights reserved.
 //
 
-#include "VoodooGPIO.hpp"
-
 #ifndef VoodooGPIOSunrisePointLP_h
 #define VoodooGPIOSunrisePointLP_h
+#include "VoodooGPIOIntel.hpp"
 
 #define SPT_PAD_OWN     0x020
 #define SPT_PADCFGLOCK  0x0a0
@@ -267,7 +266,7 @@ static struct intel_community sptlp_communities[] = {
     SPT_COMMUNITY(2, 120, 151),
 };
 
-class VoodooGPIOSunrisePointLP : public VoodooGPIO {
+class VoodooGPIOSunrisePointLP : public VoodooGPIOIntel {
     OSDeclareDefaultStructors(VoodooGPIOSunrisePointLP);
 
     bool start(IOService *provider) override;

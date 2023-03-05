@@ -8,7 +8,7 @@
 
 #include "VoodooGPIOIceLakeLP.hpp"
 
-OSDefineMetaClassAndStructors(VoodooGPIOIceLakeLP, VoodooGPIO);
+OSDefineMetaClassAndStructors(VoodooGPIOIceLakeLP, VoodooGPIOIntel);
 
 bool VoodooGPIOIceLakeLP::start(IOService *provider) {
     this->pins = icllp_pins;
@@ -22,5 +22,5 @@ bool VoodooGPIOIceLakeLP::start(IOService *provider) {
 
     IOLog("%s::Loading GPIO Data for IceLake-LP\n", getName());
 
-    return VoodooGPIO::start(provider);
+    return VoodooGPIOIntel::start(provider);
 }
