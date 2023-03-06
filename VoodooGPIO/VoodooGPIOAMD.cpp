@@ -78,3 +78,26 @@ bool VoodooGPIOAMD::start(IOService *provider) {
 
     return true;
 }
+
+void VoodooGPIOAMD::stop(IOService *provider) {
+    IOLog("%s::VoodooGPIO stop!\n", getName());
+
+    if (command_gate) {
+        workLoop->removeEventSource(command_gate);
+        OSSafeReleaseNULL(command_gate);
+    }
+
+    if (registered_pin_list) {
+        if (registered_pin_list->getCount() > 0) {
+            IOLog("%s::Interrupt has not been unregistered by client\n", getName());
+            getProvider()->unregisterInterrupt(0);
+        }
+        OSSafeReleaseNULL(registered_pin_list);
+    }
+
+    OSSafeReleaseNULL(workLoop);
+
+    PMstop();
+
+    IOService::stop(provider);
+}

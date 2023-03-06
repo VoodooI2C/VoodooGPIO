@@ -1634,6 +1634,7 @@ private:
 
 public:
     bool start(IOService *provider) override;
+    void stop(IOService *provider) override;
 };
 
 #endif /* VoodooGPIOAMD_hpp */
