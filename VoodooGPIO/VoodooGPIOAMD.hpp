@@ -1632,7 +1632,7 @@ private:
     size_t ngroups { 0 };
     const struct amd_function *functions = nullptr;
     size_t nfunctions { 0 };
-	UInt32 *saved_regs = nullptr;
+    UInt32 *saved_regs = nullptr;
     int irq { -1 };
     IOMemoryMap *mmap = nullptr;
     IOVirtualAddress base {};
