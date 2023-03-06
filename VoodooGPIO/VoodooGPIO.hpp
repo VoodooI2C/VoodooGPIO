@@ -46,45 +46,42 @@ struct pinctrl_pin_desc {
 #define PINCTRL_PIN(a, b) {.number = a, .name = b}
 #define PINCTRL_PIN_ANON(a) {.number = a}
 
+#define kIOPMPowerOff 0
+
+#if defined(__LP64__) && __LP64__
+#define BITS_PER_LONG 64
+#else
+#define BITS_PER_LONG 32
+#endif
+
+#define BIT(x) 1UL << x
+#define GENMASK(h, l) \
+(((~0UL) << (l)) & (~0UL >> (BITS_PER_LONG - 1 - (h))))
+
+#define DIV_ROUND_UP(n, d) (((n) + (d) - 1) / (d))
+
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
+
+// Log only if current thread is interruptible, otherwise we will get a panic.
+#define TryLog(args...) do { if (ml_get_interrupts_enabled()) IOLog(args); } while (0)
 
 class VoodooGPIO : public IOService {
     OSDeclareDefaultStructors(VoodooGPIO);
 
 protected:
-    const struct pinctrl_pin_desc *pins;
-    size_t npins;
-    bool controllerIsAwake;
+    const struct pinctrl_pin_desc *pins = nullptr;
+    size_t npins { 0 };
+    bool controllerIsAwake = false;
 
     IOWorkLoop *workLoop = nullptr;
     IOCommandGate* command_gate = nullptr;
     OSArray* registered_pin_list = nullptr;
-    bool isInterruptBusy;
+    bool isInterruptBusy = false;
 
-    IOWorkLoop* getWorkLoop() {
-        // Do we have a work loop already?, if so return it NOW.
-        if ((vm_address_t) workLoop >> 1)
-            return workLoop;
-
-        if (OSCompareAndSwap(0, 1, reinterpret_cast<IOWorkLoop*>(&workLoop))) {
-            // Construct the workloop and set the cntrlSync variable
-            // to whatever the result is and return
-            workLoop = IOWorkLoop::workLoop();
-        } else {
-            while (reinterpret_cast<IOWorkLoop*>(workLoop) == reinterpret_cast<IOWorkLoop*>(1)) {
-                // Spin around the cntrlSync variable until the
-                // initialization finishes.
-                thread_block(0);
-            }
-        }
-
-        return workLoop;
-    }
+    IOWorkLoop* getWorkLoop();
 
  public:
-    virtual IOReturn setInterruptTypeForPin(int pin, int type) {
-        return kIOReturnNoInterrupt;
-    }
+    virtual IOReturn setInterruptTypeForPin(int pin, int type);
 };
 
 #endif /* VoodooGPIO_h */

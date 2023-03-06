@@ -1625,16 +1625,55 @@ static const struct amd_function pmx_functions[] = {
 };
 
 class VoodooGPIOAMD : public VoodooGPIO {
-private:
-    const struct pingroup *groups;
-    size_t ngroups;
-    const struct amd_function *functions;
-    size_t nfunctions;
-    int irq;
+    OSDeclareDefaultStructors(VoodooGPIOAMD);
 
-public:
+private:
+    const struct pingroup *groups = nullptr;
+    size_t ngroups { 0 };
+    const struct amd_function *functions = nullptr;
+    size_t nfunctions { 0 };
+	UInt32 *saved_regs = nullptr;
+    int irq { -1 };
+    IOMemoryMap *mmap = nullptr;
+    IOVirtualAddress base {};
+    unsigned *interruptTypes;
+    OSObject **pinInterruptActionOwners;
+    IOInterruptAction *pinInterruptAction;
+    void **pinInterruptRefcons;
+
+    int amd_gpio_get_direction(unsigned offset);
+    int amd_gpio_direction_input(unsigned offset);
+    int amd_gpio_direction_output(unsigned offset, int value);
+    int amd_gpio_get_value(unsigned offset);
+    void amd_gpio_set_value(unsigned offset, int value);
+    void amd_gpio_irq_enable(unsigned pin);
+    void amd_gpio_irq_disable(unsigned pin);
+    void amd_gpio_irq_mask(unsigned pin);
+    void amd_gpio_irq_unmask(unsigned pin);
+    int amd_gpio_irq_set_wake(unsigned pin, unsigned int on);
+    void amd_gpio_irq_eoi();
+    int amd_gpio_irq_set_type(unsigned pin, unsigned int type);
+    bool do_amd_gpio_irq_handler(int irq);
+    void amd_gpio_irq_init();
+    int amd_gpio_suspend();
+    int amd_gpio_resume();
+
+    void InterruptOccurred(void *refCon, IOService *nub, int source);
+
+ public:
+    IOReturn getInterruptType(int pin, int *interruptType) override;
+    IOReturn registerInterrupt(int pin, OSObject *target, IOInterruptAction handler, void *refcon) override;
+    IOReturn unregisterInterrupt(int pin) override;
+
+    IOReturn enableInterrupt(int pin) override;
+    IOReturn disableInterrupt(int pin) override;
+
+    IOReturn setInterruptTypeForPin(int pin, int type) override;
+
     bool start(IOService *provider) override;
     void stop(IOService *provider) override;
+
+    IOReturn setPowerState(unsigned long powerState, IOService *whatDevice) override;
 };
 
 #endif /* VoodooGPIOAMD_hpp */

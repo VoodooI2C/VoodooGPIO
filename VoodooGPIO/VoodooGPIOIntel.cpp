@@ -9,20 +9,6 @@
 
 #include "VoodooGPIOIntel.hpp"
 
-#define kIOPMPowerOff 0
-
-#if defined(__LP64__) && __LP64__
-#define BITS_PER_LONG 64
-#else
-#define BITS_PER_LONG 32
-#endif
-
-#define BIT(x) 1UL << x
-#define GENMASK(h, l) \
-(((~0UL) << (l)) & (~0UL >> (BITS_PER_LONG - 1 - (h))))
-
-#define DIV_ROUND_UP(n, d) (((n) + (d) - 1) / (d))
-
 /* Offset from regs */
 #define REVID               0x000
 #define REVID_SHIFT         16
@@ -75,9 +61,6 @@
 
 #define pin_to_padno(c, p)      ((p) - (c)->pin_base)
 #define padgroup_offset(g, p)   ((p) - (g)->base)
-
-// Log only if current thread is interruptible, otherwise we will get a panic.
-#define TryLog(args...) do { if (ml_get_interrupts_enabled()) IOLog(args); } while (0)
 
 OSDefineMetaClassAndStructors(VoodooGPIOIntel, VoodooGPIO);
 

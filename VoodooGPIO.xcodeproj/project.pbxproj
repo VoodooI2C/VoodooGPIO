@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		0FC03704258E6F890026BA14 /* libkmod.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0FC03703258E6F890026BA14 /* libkmod.a */; };
 		406D56CB29B5050400427C54 /* VoodooGPIOIntel.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 406D56CA29B5050400427C54 /* VoodooGPIOIntel.hpp */; };
+		40AAD2D429B657EC001C60CD /* VoodooGPIO.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 40AAD2D329B657EC001C60CD /* VoodooGPIO.cpp */; };
 		40AFB77629B6207E00223D0C /* VoodooGPIOAMD.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 40AFB77429B6207E00223D0C /* VoodooGPIOAMD.cpp */; };
 		40AFB77729B6207E00223D0C /* VoodooGPIOAMD.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 40AFB77529B6207E00223D0C /* VoodooGPIOAMD.hpp */; };
 		ACD8275D219D034F0041DE1B /* VoodooGPIOCannonLakeLP.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ACD8275B219D034F0041DE1B /* VoodooGPIOCannonLakeLP.cpp */; };
@@ -28,6 +29,7 @@
 /* Begin PBXFileReference section */
 		0FC03703258E6F890026BA14 /* libkmod.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libkmod.a; path = ../../MacKernelSDK/Library/x86_64/libkmod.a; sourceTree = "<group>"; };
 		406D56CA29B5050400427C54 /* VoodooGPIOIntel.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = VoodooGPIOIntel.hpp; sourceTree = "<group>"; };
+		40AAD2D329B657EC001C60CD /* VoodooGPIO.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = VoodooGPIO.cpp; sourceTree = "<group>"; };
 		40AFB77429B6207E00223D0C /* VoodooGPIOAMD.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = VoodooGPIOAMD.cpp; sourceTree = "<group>"; };
 		40AFB77529B6207E00223D0C /* VoodooGPIOAMD.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = VoodooGPIOAMD.hpp; sourceTree = "<group>"; };
 		ACD8275B219D034F0041DE1B /* VoodooGPIOCannonLakeLP.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = VoodooGPIOCannonLakeLP.cpp; sourceTree = "<group>"; };
@@ -128,6 +130,7 @@
 				FBE40CF524E2366B00CDC4ED /* IceLake-LP */,
 				F10447AB1F4278AB00BA5A85 /* SunrisePoint-H */,
 				F142D1181F42C244007AA5C6 /* SunrisePoint-LP */,
+				40AAD2D329B657EC001C60CD /* VoodooGPIO.cpp */,
 				F1F172C81F42263A00AD98FA /* VoodooGPIO.hpp */,
 				F1F172CA1F42263A00AD98FA /* VoodooGPIOIntel.cpp */,
 				406D56CA29B5050400427C54 /* VoodooGPIOIntel.hpp */,
@@ -239,6 +242,7 @@
 				F142D11B1F42C255007AA5C6 /* VoodooGPIOSunrisePointLP.cpp in Sources */,
 				ACD8275D219D034F0041DE1B /* VoodooGPIOCannonLakeLP.cpp in Sources */,
 				40AFB77629B6207E00223D0C /* VoodooGPIOAMD.cpp in Sources */,
+				40AAD2D429B657EC001C60CD /* VoodooGPIO.cpp in Sources */,
 				FBE40CF824E2373400CDC4ED /* VoodooGPIOIceLakeLP.cpp in Sources */,
 				ACD82762219D06C20041DE1B /* VoodooGPIOCannonLakeH.cpp in Sources */,
 				F1F172CB1F42263A00AD98FA /* VoodooGPIOIntel.cpp in Sources */,
