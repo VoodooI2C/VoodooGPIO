@@ -230,7 +230,6 @@ protected:
     void intel_gpio_pin_irq_handler(unsigned hw_pin);
 
     void InterruptOccurred(void *refCon, IOService *nub, int source);
-    IOReturn interruptOccurredGated();
     
  public:
     IOReturn getInterruptType(int pin, int *interruptType) override;

@@ -1,5 +1,5 @@
 //
-//  VoodooGPIO.cpp
+//  VoodooGPIOIntel.cpp
 //  VoodooGPIO
 //
 //  Created by CoolStar on 8/14/17.
@@ -1014,22 +1014,4 @@ void VoodooGPIOIntel::InterruptOccurred(void *refCon, IOService *nub, int source
             intel_gpio_pin_irq_handler(registered_pin->unsigned32BitValue());
         }
     }
-}
-
-IOReturn VoodooGPIOIntel::interruptOccurredGated() {
-    UInt32 inactive = 0;
-    bool firstdelay = true;
-    
-    for (int i = 0; i < ncommunities; i++) {
-        struct intel_community *community = &communities[i];
-        if (*community->isActiveCommunity)
-            intel_gpio_community_irq_handler(community, &firstdelay);
-        else
-            inactive++;
-    }
-    
-    nInactiveCommunities = (inactive < ncommunities)? inactive : ((UInt32)ncommunities - 1);
-    isInterruptBusy = false;
-    
-    return kIOReturnSuccess;
 }
