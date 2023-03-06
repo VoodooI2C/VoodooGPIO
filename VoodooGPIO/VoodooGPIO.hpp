@@ -4,6 +4,7 @@
 //
 //  Created by CoolStar on 8/14/17.
 //  Copyright © 2017 CoolStar. All rights reserved.
+//  Copyright © 2023 Visual/Noot Inc/ChefKiss Inc. All rights reserved.
 //
 
 #ifndef VoodooGPIO_h
@@ -28,6 +29,14 @@
     } while (0)
 #endif
 
+inline UInt32 readl(IOVirtualAddress addr) {
+    return *(const volatile UInt32 *)addr;
+}
+
+inline void writel(UInt32 b, IOVirtualAddress addr) {
+    *(volatile UInt32 *)(addr) = b;
+}
+
 struct pinctrl_pin_desc {
     unsigned number;
     char *name;
@@ -37,21 +46,10 @@ struct pinctrl_pin_desc {
 #define PINCTRL_PIN(a, b) {.number = a, .name = b}
 #define PINCTRL_PIN_ANON(a) {.number = a}
 
-inline UInt32 readl(IOVirtualAddress addr) {
-    return *(const volatile UInt32 *)addr;
-}
-
-inline void writel(UInt32 b, IOVirtualAddress addr) {
-    *(volatile UInt32 *)(addr) = b;
-}
-
 class VoodooGPIO : public IOService {
     OSDeclareDefaultStructors(VoodooGPIO);
     
 protected:
-    struct pinctrl_pin_desc *pins;
-    size_t npins;
-    
     bool controllerIsAwake;
 
     IOWorkLoop *workLoop = nullptr;

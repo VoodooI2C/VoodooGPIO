@@ -4,6 +4,7 @@
 //
 //  Created by Visual on 5/3/23.
 //  Copyright © 2023 CoolStar. All rights reserved.
+//  Copyright © 2023 Visual/Noot Inc/ChefKiss Inc. All rights reserved.
 //
 
 #ifndef VoodooGPIOIntel_h
@@ -167,6 +168,8 @@ class VoodooGPIOIntel : public VoodooGPIO {
     OSDeclareDefaultStructors(VoodooGPIOIntel);
 
 protected:
+    struct pinctrl_pin_desc *pins;
+    size_t npins;
     struct intel_pingroup *groups;
     size_t ngroups;
     struct intel_function *functions;

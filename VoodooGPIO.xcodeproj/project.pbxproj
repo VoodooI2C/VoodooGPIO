@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		0FC03704258E6F890026BA14 /* libkmod.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0FC03703258E6F890026BA14 /* libkmod.a */; };
 		406D56CB29B5050400427C54 /* VoodooGPIOIntel.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 406D56CA29B5050400427C54 /* VoodooGPIOIntel.hpp */; };
+		40AFB77629B6207E00223D0C /* VoodooGPIOAMD.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 40AFB77429B6207E00223D0C /* VoodooGPIOAMD.cpp */; };
+		40AFB77729B6207E00223D0C /* VoodooGPIOAMD.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 40AFB77529B6207E00223D0C /* VoodooGPIOAMD.hpp */; };
 		ACD8275D219D034F0041DE1B /* VoodooGPIOCannonLakeLP.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ACD8275B219D034F0041DE1B /* VoodooGPIOCannonLakeLP.cpp */; };
 		ACD8275E219D034F0041DE1B /* VoodooGPIOCannonLakeLP.hpp in Headers */ = {isa = PBXBuildFile; fileRef = ACD8275C219D034F0041DE1B /* VoodooGPIOCannonLakeLP.hpp */; };
 		ACD82762219D06C20041DE1B /* VoodooGPIOCannonLakeH.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ACD82760219D06C20041DE1B /* VoodooGPIOCannonLakeH.cpp */; };
@@ -26,6 +28,8 @@
 /* Begin PBXFileReference section */
 		0FC03703258E6F890026BA14 /* libkmod.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libkmod.a; path = ../../MacKernelSDK/Library/x86_64/libkmod.a; sourceTree = "<group>"; };
 		406D56CA29B5050400427C54 /* VoodooGPIOIntel.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = VoodooGPIOIntel.hpp; sourceTree = "<group>"; };
+		40AFB77429B6207E00223D0C /* VoodooGPIOAMD.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = VoodooGPIOAMD.cpp; sourceTree = "<group>"; };
+		40AFB77529B6207E00223D0C /* VoodooGPIOAMD.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = VoodooGPIOAMD.hpp; sourceTree = "<group>"; };
 		ACD8275B219D034F0041DE1B /* VoodooGPIOCannonLakeLP.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = VoodooGPIOCannonLakeLP.cpp; sourceTree = "<group>"; };
 		ACD8275C219D034F0041DE1B /* VoodooGPIOCannonLakeLP.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = VoodooGPIOCannonLakeLP.hpp; sourceTree = "<group>"; };
 		ACD82760219D06C20041DE1B /* VoodooGPIOCannonLakeH.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = VoodooGPIOCannonLakeH.cpp; sourceTree = "<group>"; };
@@ -127,6 +131,8 @@
 				F1F172C81F42263A00AD98FA /* VoodooGPIO.hpp */,
 				F1F172CA1F42263A00AD98FA /* VoodooGPIOIntel.cpp */,
 				406D56CA29B5050400427C54 /* VoodooGPIOIntel.hpp */,
+				40AFB77429B6207E00223D0C /* VoodooGPIOAMD.cpp */,
+				40AFB77529B6207E00223D0C /* VoodooGPIOAMD.hpp */,
 				F1F172CC1F42263A00AD98FA /* Info.plist */,
 				F17C4C481F42AC33009DB44C /* linuxirq.h */,
 			);
@@ -155,6 +161,7 @@
 				F10447AF1F4278CD00BA5A85 /* VoodooGPIOSunrisePointH.hpp in Headers */,
 				F142D11C1F42C255007AA5C6 /* VoodooGPIOSunrisePointLP.hpp in Headers */,
 				ACD82763219D06C20041DE1B /* VoodooGPIOCannonLakeH.hpp in Headers */,
+				40AFB77729B6207E00223D0C /* VoodooGPIOAMD.hpp in Headers */,
 				ACD8275E219D034F0041DE1B /* VoodooGPIOCannonLakeLP.hpp in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -231,6 +238,7 @@
 				F10447AE1F4278CD00BA5A85 /* VoodooGPIOSunrisePointH.cpp in Sources */,
 				F142D11B1F42C255007AA5C6 /* VoodooGPIOSunrisePointLP.cpp in Sources */,
 				ACD8275D219D034F0041DE1B /* VoodooGPIOCannonLakeLP.cpp in Sources */,
+				40AFB77629B6207E00223D0C /* VoodooGPIOAMD.cpp in Sources */,
 				FBE40CF824E2373400CDC4ED /* VoodooGPIOIceLakeLP.cpp in Sources */,
 				ACD82762219D06C20041DE1B /* VoodooGPIOCannonLakeH.cpp in Sources */,
 				F1F172CB1F42263A00AD98FA /* VoodooGPIOIntel.cpp in Sources */,
