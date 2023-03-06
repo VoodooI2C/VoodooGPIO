@@ -14,48 +14,6 @@
 
 OSDefineMetaClassAndStructors(VoodooGPIOAMD, VoodooGPIO);
 
-int VoodooGPIOAMD::amd_gpio_get_direction(unsigned offset) {
-    UInt32 pin_reg = readl(this->base + offset * 4);
-
-    if (pin_reg & BIT(OUTPUT_ENABLE_OFF))
-        return GPIO_LINE_DIRECTION_OUT;
-
-    return GPIO_LINE_DIRECTION_IN;
-}
-
-int VoodooGPIOAMD::amd_gpio_direction_input(unsigned offset) {
-    UInt32 pin_reg = readl(this->base + offset * 4);
-    pin_reg &= ~BIT(OUTPUT_ENABLE_OFF);
-    writel(pin_reg, this->base + offset * 4);
-
-    return 0;
-}
-
-int VoodooGPIOAMD::amd_gpio_direction_output(unsigned offset, int value) {
-    UInt32 pin_reg = readl(this->base + offset * 4);
-    pin_reg |= BIT(OUTPUT_ENABLE_OFF);
-    if (value)
-        pin_reg |= BIT(OUTPUT_VALUE_OFF);
-    else
-        pin_reg &= ~BIT(OUTPUT_VALUE_OFF);
-    writel(pin_reg, this->base + offset * 4);
-
-    return 0;
-}
-
-int VoodooGPIOAMD::amd_gpio_get_value(unsigned offset) {
-    return !!(readl(this->base + offset * 4) & BIT(PIN_STS_OFF));
-}
-
-void VoodooGPIOAMD::amd_gpio_set_value(unsigned offset, int value) {
-    UInt32 pin_reg = readl(this->base + offset * 4);
-    if (value)
-        pin_reg |= BIT(OUTPUT_VALUE_OFF);
-    else
-        pin_reg &= ~BIT(OUTPUT_VALUE_OFF);
-    writel(pin_reg, this->base + offset * 4);
-}
-
 void VoodooGPIOAMD::amd_gpio_irq_enable(unsigned pin) {
     UInt32 pin_reg = readl(this->base + pin*4);
     pin_reg |= BIT(INTERRUPT_ENABLE_OFF);

@@ -1641,11 +1641,6 @@ private:
     IOInterruptAction *pinInterruptAction;
     void **pinInterruptRefcons;
 
-    int amd_gpio_get_direction(unsigned offset);
-    int amd_gpio_direction_input(unsigned offset);
-    int amd_gpio_direction_output(unsigned offset, int value);
-    int amd_gpio_get_value(unsigned offset);
-    void amd_gpio_set_value(unsigned offset, int value);
     void amd_gpio_irq_enable(unsigned pin);
     void amd_gpio_irq_disable(unsigned pin);
     void amd_gpio_irq_mask(unsigned pin);
