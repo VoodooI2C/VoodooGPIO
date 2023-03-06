@@ -1,5 +1,5 @@
 //
-//  VoodooGPIO.h
+//  VoodooGPIO.hpp
 //  VoodooGPIO
 //
 //  Created by CoolStar on 8/14/17.
@@ -17,6 +17,26 @@
 #include <IOKit/IOCommandGate.h>
 #include "linuxirq.h"
 
+// Exists in the macOS 10.15 SDK
+#ifndef IOSafeDeleteNULL
+#define IOSafeDeleteNULL(ptr, type, count)              \
+    do {                                                \
+        if (NULL != (ptr)) {                            \
+            IODelete((ptr), type, count);               \
+            (ptr) = NULL;                               \
+        }                                               \
+    } while (0)
+#endif
+
+struct pinctrl_pin_desc {
+    unsigned number;
+    char *name;
+    void *drv_data;
+};
+
+#define PINCTRL_PIN(a, b) {.number = a, .name = b}
+#define PINCTRL_PIN_ANON(a) {.number = a}
+
 inline UInt32 readl(IOVirtualAddress addr) {
     return *(const volatile UInt32 *)addr;
 }
@@ -29,6 +49,9 @@ class VoodooGPIO : public IOService {
     OSDeclareDefaultStructors(VoodooGPIO);
     
 protected:
+    struct pinctrl_pin_desc *pins;
+    size_t npins;
+    
     bool controllerIsAwake;
 
     IOWorkLoop *workLoop = nullptr;

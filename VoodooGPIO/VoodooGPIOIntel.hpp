@@ -10,26 +10,6 @@
 #define VoodooGPIOIntel_h
 #include "VoodooGPIO.hpp"
 
-// Exists in the macOS 10.15 SDK
-#ifndef IOSafeDeleteNULL
-#define IOSafeDeleteNULL(ptr, type, count)              \
-    do {                                                \
-        if (NULL != (ptr)) {                            \
-            IODelete((ptr), type, count);               \
-            (ptr) = NULL;                               \
-        }                                               \
-    } while (0)
-#endif
-
-struct pinctrl_pin_desc {
-    unsigned number;
-    char *name;
-    void *drv_data;
-};
-
-#define PINCTRL_PIN(a, b) {.number = a, .name = b}
-#define PINCTRL_PIN_ANON(a) {.number = a}
-
 /**
  * struct intel_pingroup - Description about group of pins
  * @name: Name of the groups
@@ -187,8 +167,6 @@ class VoodooGPIOIntel : public VoodooGPIO {
     OSDeclareDefaultStructors(VoodooGPIOIntel);
 
 protected:
-    struct pinctrl_pin_desc *pins;
-    size_t npins;
     struct intel_pingroup *groups;
     size_t ngroups;
     struct intel_function *functions;
