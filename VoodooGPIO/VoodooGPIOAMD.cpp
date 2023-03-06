@@ -138,7 +138,6 @@ int VoodooGPIOAMD::amd_gpio_irq_set_type(unsigned pin, unsigned int type) {
         pin_reg &= ~(ACTIVE_LEVEL_MASK << ACTIVE_LEVEL_OFF);
         pin_reg |= ACTIVE_HIGH << ACTIVE_LEVEL_OFF;
         // irq_set_handler_locked(d, handle_edge_irq);
-        this->interruptTypes[pin] = IRQ_TYPE_EDGE_RISING;
         break;
 
     case IRQ_TYPE_EDGE_FALLING:
@@ -146,7 +145,6 @@ int VoodooGPIOAMD::amd_gpio_irq_set_type(unsigned pin, unsigned int type) {
         pin_reg &= ~(ACTIVE_LEVEL_MASK << ACTIVE_LEVEL_OFF);
         pin_reg |= ACTIVE_LOW << ACTIVE_LEVEL_OFF;
         // irq_set_handler_locked(d, handle_edge_irq);
-        this->interruptTypes[pin] = IRQ_TYPE_EDGE_FALLING;
         break;
 
     case IRQ_TYPE_EDGE_BOTH:
@@ -154,7 +152,6 @@ int VoodooGPIOAMD::amd_gpio_irq_set_type(unsigned pin, unsigned int type) {
         pin_reg &= ~(ACTIVE_LEVEL_MASK << ACTIVE_LEVEL_OFF);
         pin_reg |= BOTH_EADGE << ACTIVE_LEVEL_OFF;
         // irq_set_handler_locked(d, handle_edge_irq);
-        this->interruptTypes[pin] = IRQ_TYPE_EDGE_BOTH;
         break;
 
     case IRQ_TYPE_LEVEL_HIGH:
@@ -162,7 +159,6 @@ int VoodooGPIOAMD::amd_gpio_irq_set_type(unsigned pin, unsigned int type) {
         pin_reg &= ~(ACTIVE_LEVEL_MASK << ACTIVE_LEVEL_OFF);
         pin_reg |= ACTIVE_HIGH << ACTIVE_LEVEL_OFF;
         // irq_set_handler_locked(d, handle_level_irq);
-        this->interruptTypes[pin] = IRQ_TYPE_LEVEL_HIGH;
         break;
 
     case IRQ_TYPE_LEVEL_LOW:
@@ -170,12 +166,10 @@ int VoodooGPIOAMD::amd_gpio_irq_set_type(unsigned pin, unsigned int type) {
         pin_reg &= ~(ACTIVE_LEVEL_MASK << ACTIVE_LEVEL_OFF);
         pin_reg |= ACTIVE_LOW << ACTIVE_LEVEL_OFF;
         // irq_set_handler_locked(d, handle_level_irq);
-        this->interruptTypes[pin] = IRQ_TYPE_LEVEL_LOW;
         break;
 
     case IRQ_TYPE_NONE:
         // irq_set_handler_locked(d, handle_bad_irq);
-        this->interruptTypes[pin] = IRQ_TYPE_NONE;
         break;
 
     default:
