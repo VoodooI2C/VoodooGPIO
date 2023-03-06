@@ -8,8 +8,6 @@
 //
 
 #include "VoodooGPIOAMD.hpp"
-#include "libkern/c++/OSMetaClass.h"
-#include "linuxirq.h"
 
 #define GPIO_LINE_DIRECTION_IN	1
 #define GPIO_LINE_DIRECTION_OUT	0
