@@ -389,7 +389,7 @@ IOReturn VoodooGPIOAMD::unregisterInterrupt(int pin) {
 
     IOLog("%s::Unregistering GPIO IRQ pin 0x%02X\n", this->getName(), pin);
 
-    amd_gpio_irq_mask(pin);
+    this->amd_gpio_irq_mask(pin);
 
     this->pinInterruptActionOwners[pin] = NULL;
     this->pinInterruptAction[pin] = NULL;
@@ -417,9 +417,10 @@ IOReturn VoodooGPIOAMD::enableInterrupt(int pin) {
         return kIOReturnNoInterrupt;
 
     if (this->pinInterruptActionOwners[pin]) {
-        amd_gpio_irq_set_type(pin, this->interruptTypes[pin]);
-        amd_gpio_irq_unmask(pin);
-        return getProvider()->enableInterrupt(0);
+        this->amd_gpio_irq_set_type(pin, this->interruptTypes[pin]);
+        this->amd_gpio_irq_enable(pin);
+        this->amd_gpio_irq_unmask(pin);
+        return this->getProvider()->enableInterrupt(0);
     }
     return kIOReturnNoInterrupt;
 }
@@ -431,7 +432,8 @@ IOReturn VoodooGPIOAMD::disableInterrupt(int pin) {
     if (pin < 0 || pin >= this->npins)
         return kIOReturnNoInterrupt;
 
-    amd_gpio_irq_mask(pin);
+    this->amd_gpio_irq_disable(pin);
+    this->amd_gpio_irq_mask(pin);
     return this->getProvider()->disableInterrupt(0);
 }
 
@@ -506,6 +508,8 @@ bool VoodooGPIOAMD::start(IOService *provider) {
     this->pinInterruptAction = IONew(IOInterruptAction, this->npins);
     this->interruptTypes = IONew(unsigned, this->npins);
     this->pinInterruptRefcons = IONew(void *, this->npins);
+
+    this->amd_gpio_irq_init();
 
     this->registerService();
 
