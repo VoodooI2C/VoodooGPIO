@@ -32,9 +32,7 @@ int VoodooGPIOAMD::amd_gpio_direction_input(unsigned offset) {
 }
 
 int VoodooGPIOAMD::amd_gpio_direction_output(unsigned offset, int value) {
-    UInt32 pin_reg;
-
-    pin_reg = readl(this->base + offset * 4);
+    UInt32 pin_reg = readl(this->base + offset * 4);
     pin_reg |= BIT(OUTPUT_ENABLE_OFF);
     if (value)
         pin_reg |= BIT(OUTPUT_VALUE_OFF);
@@ -46,17 +44,11 @@ int VoodooGPIOAMD::amd_gpio_direction_output(unsigned offset, int value) {
 }
 
 int VoodooGPIOAMD::amd_gpio_get_value(unsigned offset) {
-    UInt32 pin_reg;
-
-    pin_reg = readl(this->base + offset * 4);
-
-    return !!(pin_reg & BIT(PIN_STS_OFF));
+    return !!(readl(this->base + offset * 4) & BIT(PIN_STS_OFF));
 }
 
 void VoodooGPIOAMD::amd_gpio_set_value(unsigned offset, int value) {
-    UInt32 pin_reg;
-
-    pin_reg = readl(this->base + offset * 4);
+    UInt32 pin_reg = readl(this->base + offset * 4);
     if (value)
         pin_reg |= BIT(OUTPUT_VALUE_OFF);
     else
@@ -65,9 +57,6 @@ void VoodooGPIOAMD::amd_gpio_set_value(unsigned offset, int value) {
 }
 
 void VoodooGPIOAMD::amd_gpio_irq_enable(unsigned pin) {
-    // ???
-    // gpiochip_enable_irq(gc, d->hwirq);
-
     UInt32 pin_reg = readl(this->base + pin*4);
     pin_reg |= BIT(INTERRUPT_ENABLE_OFF);
     pin_reg |= BIT(INTERRUPT_MASK_OFF);
@@ -79,9 +68,6 @@ void VoodooGPIOAMD::amd_gpio_irq_disable(unsigned pin) {
     pin_reg &= ~BIT(INTERRUPT_ENABLE_OFF);
     pin_reg &= ~BIT(INTERRUPT_MASK_OFF);
     writel(pin_reg, this->base + pin*4);
-
-    // ???
-    // gpiochip_disable_irq(gc, d->hwirq);
 }
 
 void VoodooGPIOAMD::amd_gpio_irq_mask(unsigned pin) {
@@ -173,7 +159,7 @@ int VoodooGPIOAMD::amd_gpio_irq_set_type(unsigned pin, unsigned int type) {
         break;
 
     default:
-        TryLog("Invalid type value\n");
+        TryLog("%s::VoodooGPIO Invalid type value\n", this->getName());
         ret = -1;
     }
 
@@ -231,7 +217,7 @@ bool VoodooGPIOAMD::do_amd_gpio_irq_handler(int irq) {
             regval = readl(regs + i);
 
             if (regval & PIN_IRQ_PENDING)
-                TryLog("GPIO %d is active: 0x%x", irqnr + i, regval);
+                TryLog("%s::VoodooGPIO: GPIO %d is active: 0x%x\n", this->getName(), irqnr + i, regval);
 
             /* caused wake on resume context for shared IRQ */
             if (irq < 0 && (regval & BIT(WAKE_STS_OFF)))
@@ -264,7 +250,7 @@ bool VoodooGPIOAMD::do_amd_gpio_irq_handler(int irq) {
             regval = readl(regs + i);
             if (irq == 0) {
                 regval &= ~BIT(INTERRUPT_ENABLE_OFF);
-                TryLog("Disabling spurious GPIO IRQ %d\n", irqnr + i);
+                TryLog("%s::VoodooGPIO: Disabling spurious GPIO IRQ %d\n", this->getName(), irqnr + i);
             }
             writel(regval, regs + i);
 
@@ -320,8 +306,8 @@ int VoodooGPIOAMD::amd_gpio_resume() {
 }
 
 void VoodooGPIOAMD::InterruptOccurred(void *refCon, IOService *nub, int source) {
-    for (int i = 0; i < registered_pin_list->getCount(); i++) {
-        if (OSNumber* registered_pin = OSDynamicCast(OSNumber, registered_pin_list->getObject(i))) {
+    for (int i = 0; i < this->registered_pin_list->getCount(); i++) {
+        if (OSNumber* registered_pin = OSDynamicCast(OSNumber, this->registered_pin_list->getObject(i))) {
             this->do_amd_gpio_irq_handler(registered_pin->unsigned32BitValue());
         }
     }
@@ -345,14 +331,14 @@ IOReturn VoodooGPIOAMD::registerInterrupt(int pin, OSObject *target, IOInterrupt
     if (pin < 0 || pin >= this->npins)
         return kIOReturnNoInterrupt;
 
-    IOLog("%s::Registering GPIO IRQ pin 0x%02X\n", getName(), pin);
+    IOLog("%s::Registering GPIO IRQ pin 0x%02X\n", this->getName(), pin);
 
     if (this->pinInterruptActionOwners[pin])
         return kIOReturnNoResources;
 
     if (OSNumber* registered_pin = OSNumber::withNumber(pin, 32)) {
-        if (!registered_pin_list->setObject(registered_pin)) {
-            IOLog("%s::Unable to register pin into list\n", getName());
+        if (!this->registered_pin_list->setObject(registered_pin)) {
+            IOLog("%s::Unable to register pin into list\n", this->getName());
             registered_pin->release();
             return kIOReturnNoResources;
         }
@@ -362,14 +348,14 @@ IOReturn VoodooGPIOAMD::registerInterrupt(int pin, OSObject *target, IOInterrupt
         this->pinInterruptAction[pin] = handler;
         this->pinInterruptRefcons[pin] = refcon;
     } else {
-        IOLog("%s::Unable to allocate interrupt pin", getName());
+        IOLog("%s::Unable to allocate interrupt pin", this->getName());
         return kIOReturnNoResources;
     }
 
-    IOLog("%s::Successfully registered GPIO IRQ pin 0x%02X\n", getName(), pin);
+    IOLog("%s::Successfully registered GPIO IRQ pin 0x%02X\n", this->getName(), pin);
 
-    if (registered_pin_list->getCount() == 1) {
-        return getProvider()->registerInterrupt(0, this, OSMemberFunctionCast(IOInterruptAction, this, &VoodooGPIOAMD::InterruptOccurred));
+    if (this->registered_pin_list->getCount() == 1) {
+        return this->getProvider()->registerInterrupt(0, this, OSMemberFunctionCast(IOInterruptAction, this, &VoodooGPIOAMD::InterruptOccurred));
     }
     return kIOReturnSuccess;
 }
@@ -390,14 +376,14 @@ IOReturn VoodooGPIOAMD::unregisterInterrupt(int pin) {
     this->interruptTypes[pin] = 0;
     this->pinInterruptRefcons[pin] = NULL;
 
-    for (int i = registered_pin_list->getCount() - 1; i >= 0; i--) {
-        OSNumber* registered_pin = OSDynamicCast(OSNumber, registered_pin_list->getObject(i));
+    for (int i = this->registered_pin_list->getCount() - 1; i >= 0; i--) {
+        OSNumber* registered_pin = OSDynamicCast(OSNumber, this->registered_pin_list->getObject(i));
         if (registered_pin && registered_pin->unsigned32BitValue() == pin) {
-            registered_pin_list->removeObject(i);
+            this->registered_pin_list->removeObject(i);
         }
     }
 
-    if (registered_pin_list->getCount() == 0) {
+    if (this->registered_pin_list->getCount() == 0) {
         return getProvider()->unregisterInterrupt(0);
     }
     return kIOReturnSuccess;
@@ -467,7 +453,7 @@ bool VoodooGPIOAMD::start(IOService *provider) {
     workLoop->retain();
 
     this->command_gate = IOCommandGate::commandGate(this);
-    if (!this->command_gate || (this->workLoop->addEventSource(command_gate) != kIOReturnSuccess)) {
+    if (!this->command_gate || (this->workLoop->addEventSource(this->command_gate) != kIOReturnSuccess)) {
         IOLog("%s Could not open command gate\n", this->getName());
         stop(provider);
         return false;
