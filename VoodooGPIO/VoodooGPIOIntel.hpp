@@ -136,8 +136,6 @@ struct intel_pinctrl_context {
 #define PINCTRL_FEATURE_DEBOUNCE    1
 #define PINCTRL_FEATURE_1K_PD       2
 
-#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
-
 /**
  * PIN_GROUP - Declare a pin group
  * @n: Name of the group
@@ -168,8 +166,6 @@ class VoodooGPIOIntel : public VoodooGPIO {
     OSDeclareDefaultStructors(VoodooGPIOIntel);
 
 protected:
-    struct pinctrl_pin_desc *pins;
-    size_t npins;
     struct intel_pingroup *groups;
     size_t ngroups;
     struct intel_function *functions;
@@ -180,7 +176,7 @@ protected:
  private:
     struct intel_pinctrl_context context;
     UInt32 nInactiveCommunities;
-    
+
     struct intel_community *intel_get_community(unsigned pin);
     struct intel_padgroup *intel_community_get_padgroup(struct intel_community *community, unsigned pin);
     IOVirtualAddress intel_get_padcfg(unsigned pin, unsigned reg);
@@ -211,7 +207,7 @@ protected:
     void intel_gpio_pin_irq_handler(unsigned hw_pin);
 
     void InterruptOccurred(void *refCon, IOService *nub, int source);
-    
+
  public:
     IOReturn getInterruptType(int pin, int *interruptType) override;
     IOReturn registerInterrupt(int pin, OSObject *target, IOInterruptAction handler, void *refcon) override;

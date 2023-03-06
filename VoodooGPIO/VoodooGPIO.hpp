@@ -46,17 +46,21 @@ struct pinctrl_pin_desc {
 #define PINCTRL_PIN(a, b) {.number = a, .name = b}
 #define PINCTRL_PIN_ANON(a) {.number = a}
 
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
+
 class VoodooGPIO : public IOService {
     OSDeclareDefaultStructors(VoodooGPIO);
-    
+
 protected:
+    const struct pinctrl_pin_desc *pins;
+    size_t npins;
     bool controllerIsAwake;
 
     IOWorkLoop *workLoop = nullptr;
     IOCommandGate* command_gate = nullptr;
     OSArray* registered_pin_list = nullptr;
     bool isInterruptBusy;
-    
+
     IOWorkLoop* getWorkLoop() {
         // Do we have a work loop already?, if so return it NOW.
         if ((vm_address_t) workLoop >> 1)

@@ -1627,8 +1627,13 @@ static const struct amd_function pmx_functions[] = {
 class VoodooGPIOAMD : public VoodooGPIO {
 private:
     const struct pingroup *groups;
-    UInt32 ngroups;
+    size_t ngroups;
+    const struct amd_function *functions;
+    size_t nfunctions;
     int irq;
+
+public:
+    bool start(IOService *provider) override;
 };
 
 #endif /* VoodooGPIOAMD_hpp */
