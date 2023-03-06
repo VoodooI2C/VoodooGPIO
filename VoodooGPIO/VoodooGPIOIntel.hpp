@@ -240,7 +240,7 @@ protected:
     IOReturn enableInterrupt(int pin) override;
     IOReturn disableInterrupt(int pin) override;
 
-    IOReturn setInterruptTypeForPin(int pin, int type);
+    IOReturn setInterruptTypeForPin(int pin, int type) override;
 
     bool init(OSDictionary* properties) override;
 

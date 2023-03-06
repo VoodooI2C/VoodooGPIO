@@ -57,7 +57,9 @@ protected:
     }
 
  public:
-    IOReturn setInterruptTypeForPin(int pin, int type);
+    virtual IOReturn setInterruptTypeForPin(int pin, int type) {
+        return kIOReturnNoInterrupt;
+    }
 };
 
 #endif /* VoodooGPIO_h */
