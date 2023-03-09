@@ -419,7 +419,7 @@ bool VoodooGPIOAMD::start(IOService *provider) {
 
     IOLog("%s::VoodooGPIO Init!\n", this->getName());
 
-    this->saved_regs = IONew(UInt32, this->npins);
+    this->saved_regs = IONewZero(UInt32, this->npins);
     if (!this->saved_regs) {
         IOLog("%s::Failed to allocate saved_regs!\n", this->getName());
         stop(provider);
@@ -442,10 +442,10 @@ bool VoodooGPIOAMD::start(IOService *provider) {
     this->isInterruptBusy = false;
     this->controllerIsAwake = true;
 
-    this->pinInterruptActionOwners = IONew(OSObject*, this->npins);
-    this->pinInterruptAction = IONew(IOInterruptAction, this->npins);
-    this->interruptTypes = IONew(unsigned, this->npins);
-    this->pinInterruptRefcons = IONew(void *, this->npins);
+    this->pinInterruptActionOwners = IONewZero(OSObject*, this->npins);
+    this->pinInterruptAction = IONewZero(IOInterruptAction, this->npins);
+    this->interruptTypes = IONewZero(unsigned, this->npins);
+    this->pinInterruptRefcons = IONewZero(void *, this->npins);
 
     this->amd_gpio_irq_init();
 
