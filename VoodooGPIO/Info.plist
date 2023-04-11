@@ -100,6 +100,19 @@
 			<key>IOProviderClass</key>
 			<string>IOService</string>
 		</dict>
+		<key>VoodooGPIOTigerLakeLP</key>
+		<dict>
+			<key>CFBundleIdentifier</key>
+			<string>org.coolstar.VoodooGPIO</string>
+			<key>IOClass</key>
+			<string>VoodooGPIOTigerLakeLP</string>
+			<key>IONameMatch</key>
+			<array>
+				<string>INTC1055</string>
+			</array>
+			<key>IOProviderClass</key>
+			<string>IOService</string>
+		</dict>
 	</dict>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright © 2017 CoolStar. All rights reserved.</string>
