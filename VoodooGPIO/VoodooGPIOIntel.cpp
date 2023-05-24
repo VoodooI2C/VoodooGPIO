@@ -150,6 +150,17 @@ bool VoodooGPIOIntel::intel_pad_acpi_mode(unsigned pin) {
     offset = community->hostown_offset + padgrp->reg_num * 4;
     hostown = community->regs + offset;
 
+    UInt32 hostownval = readl(hostown);
+    if ((hostownval & BIT(gpp_offset)) == 0) {
+        IOLog("%s::Pin owned by ACPI...Attempting to take ownership\n", getName());
+        
+        hostownval |= BIT(gpp_offset);
+        writel(hostownval, hostown);
+    } else {
+        return false;
+    }
+    
+    // Second read to double check we actually got ownership
     return !(readl(hostown) & BIT(gpp_offset));
 }
 
