@@ -19,6 +19,16 @@ void VoodooGPIOAMD::amd_gpio_irq_enable(unsigned pin) {
     pin_reg |= BIT(INTERRUPT_ENABLE_OFF);
     pin_reg |= BIT(INTERRUPT_MASK_OFF);
     writel(pin_reg, this->base + pin*4);
+
+    /*
+     * When debounce logic is enabled it takes ~900 us before interrupts
+     * can be enabled. During this "debounce warm up" period the
+     * "INTERRUPT_ENABLE" bit will read as 0. Poll the bit here until it
+     * reads back as 1, signaling that interrupts are now enabled.
+     */
+    UInt32 mask = BIT(INTERRUPT_ENABLE_OFF) | BIT(INTERRUPT_MASK_OFF);
+    while ((readl(this->base + pin*4) & mask) != mask)
+        continue;
 }
 
 void VoodooGPIOAMD::amd_gpio_irq_disable(unsigned pin) {
@@ -100,28 +110,6 @@ int VoodooGPIOAMD::amd_gpio_irq_set_type(unsigned pin, unsigned int type) {
     }
 
     pin_reg |= CLR_INTR_STAT << INTERRUPT_STS_OFF;
-    /*
-     * If WAKE_INT_MASTER_REG.MaskStsEn is set, a software write to the
-     * debounce registers of any GPIO will block wake/interrupt status
-     * generation for *all* GPIOs for a length of time that depends on
-     * WAKE_INT_MASTER_REG.MaskStsLength[11:0].  During this period the
-     * INTERRUPT_ENABLE bit will read as 0.
-     *
-     * We temporarily enable irq for the GPIO whose configuration is
-     * changing, and then wait for it to read back as 1 to know when
-     * debounce has settled and then disable the irq again.
-     * We do this polling with the spinlock held to ensure other GPIO
-     * access routines do not read an incorrect value for the irq enable
-     * bit of other GPIOs.  We keep the GPIO masked while polling to avoid
-     * spurious irqs, and disable the irq again after polling.
-     */
-    UInt32 mask = BIT(INTERRUPT_ENABLE_OFF);
-    UInt32 pin_reg_irq_en = pin_reg;
-    pin_reg_irq_en |= mask;
-    pin_reg_irq_en &= ~BIT(INTERRUPT_MASK_OFF);
-    writel(pin_reg_irq_en, this->base + pin*4);
-    while ((readl(this->base + pin*4) & mask) != mask)
-        continue;
     writel(pin_reg, this->base + pin*4);
 
     return ret;
@@ -196,10 +184,7 @@ bool VoodooGPIOAMD::do_amd_gpio_irq_handler(int irq) {
     if (irq < 0)
         return false;
 
-    /* Signal EOI to the GPIO unit */
-    regval = readl(this->base + WAKE_INT_MASTER_REG);
-    regval |= EOI_MASK;
-    writel(regval, this->base + WAKE_INT_MASTER_REG);
+    this->amd_gpio_irq_eoi();
 
     return ret;
 }
@@ -285,9 +270,9 @@ IOReturn VoodooGPIOAMD::registerInterrupt(int pin, OSObject *target, IOInterrupt
 
     IOLog("%s::Successfully registered GPIO IRQ pin 0x%02X\n", this->getName(), pin);
 
-    if (this->registered_pin_list->getCount() == 1) {
+    if (this->registered_pin_list->getCount() == 1)
         return this->getProvider()->registerInterrupt(0, this, OSMemberFunctionCast(IOInterruptAction, this, &VoodooGPIOAMD::InterruptOccurred));
-    }
+
     return kIOReturnSuccess;
 }
 
@@ -314,9 +299,9 @@ IOReturn VoodooGPIOAMD::unregisterInterrupt(int pin) {
         }
     }
 
-    if (this->registered_pin_list->getCount() == 0) {
+    if (this->registered_pin_list->getCount() == 0)
         return getProvider()->unregisterInterrupt(0);
-    }
+
     return kIOReturnSuccess;
 }
 
@@ -324,16 +309,13 @@ IOReturn VoodooGPIOAMD::unregisterInterrupt(int pin) {
  * @param pin 'Software' pin number (i.e. GpioInt).
  */
 IOReturn VoodooGPIOAMD::enableInterrupt(int pin) {
-    if (pin < 0 || pin >= this->npins)
+    if (pin < 0 || pin >= this->npins || !this->pinInterruptActionOwners[pin])
         return kIOReturnNoInterrupt;
 
-    if (this->pinInterruptActionOwners[pin]) {
-        this->amd_gpio_irq_enable(pin);
-        this->amd_gpio_irq_set_type(pin, this->interruptTypes[pin]);
-        this->amd_gpio_irq_unmask(pin);
-        return this->getProvider()->enableInterrupt(0);
-    }
-    return kIOReturnNoInterrupt;
+    this->amd_gpio_irq_enable(pin);
+    this->amd_gpio_irq_set_type(pin, this->interruptTypes[pin]);
+    this->amd_gpio_irq_unmask(pin);
+    return this->getProvider()->enableInterrupt(0);
 }
 
 /**
