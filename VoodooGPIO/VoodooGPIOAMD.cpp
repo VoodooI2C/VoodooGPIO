@@ -3,7 +3,7 @@
 //  VoodooGPIO
 //
 //  Created by Visual on 6/3/23.
-//  Copyright © 2023 CoolStar. All rights reserved.
+//  Copyright © 2017 CoolStar. All rights reserved.
 //  Copyright © 2023 Visual/Noot Inc/ChefKiss Inc. All rights reserved.
 //
 
@@ -42,7 +42,6 @@ void VoodooGPIOAMD::amd_gpio_irq_unmask(unsigned pin) {
 
 int VoodooGPIOAMD::amd_gpio_irq_set_wake(unsigned pin, unsigned int on) {
     UInt32 wake_mask = BIT(WAKE_CNTRL_OFF_S0I3) | BIT(WAKE_CNTRL_OFF_S3);
-    // int err;
 
     UInt32 pin_reg = readl(this->base + pin*4);
 
@@ -52,15 +51,6 @@ int VoodooGPIOAMD::amd_gpio_irq_set_wake(unsigned pin, unsigned int on) {
         pin_reg &= ~wake_mask;
 
     writel(pin_reg, this->base + pin*4);
-
-    // ???
-    // if (on)
-    // 	err = enable_irq_wake(gpio_dev->irq);
-    // else
-    // 	err = disable_irq_wake(gpio_dev->irq);
-
-    // if (err)
-    // 	TryLog("failed to %s wake-up interrupt\n", on ? "enable" : "disable");
 
     return 0;
 }
@@ -81,39 +71,33 @@ int VoodooGPIOAMD::amd_gpio_irq_set_type(unsigned pin, unsigned int type) {
         pin_reg &= ~BIT(LEVEL_TRIG_OFF);
         pin_reg &= ~(ACTIVE_LEVEL_MASK << ACTIVE_LEVEL_OFF);
         pin_reg |= ACTIVE_HIGH << ACTIVE_LEVEL_OFF;
-        // irq_set_handler_locked(d, handle_edge_irq);
         break;
 
     case IRQ_TYPE_EDGE_FALLING:
         pin_reg &= ~BIT(LEVEL_TRIG_OFF);
         pin_reg &= ~(ACTIVE_LEVEL_MASK << ACTIVE_LEVEL_OFF);
         pin_reg |= ACTIVE_LOW << ACTIVE_LEVEL_OFF;
-        // irq_set_handler_locked(d, handle_edge_irq);
         break;
 
     case IRQ_TYPE_EDGE_BOTH:
         pin_reg &= ~BIT(LEVEL_TRIG_OFF);
         pin_reg &= ~(ACTIVE_LEVEL_MASK << ACTIVE_LEVEL_OFF);
         pin_reg |= BOTH_EADGE << ACTIVE_LEVEL_OFF;
-        // irq_set_handler_locked(d, handle_edge_irq);
         break;
 
     case IRQ_TYPE_LEVEL_HIGH:
         pin_reg |= LEVEL_TRIGGER << LEVEL_TRIG_OFF;
         pin_reg &= ~(ACTIVE_LEVEL_MASK << ACTIVE_LEVEL_OFF);
         pin_reg |= ACTIVE_HIGH << ACTIVE_LEVEL_OFF;
-        // irq_set_handler_locked(d, handle_level_irq);
         break;
 
     case IRQ_TYPE_LEVEL_LOW:
         pin_reg |= LEVEL_TRIGGER << LEVEL_TRIG_OFF;
         pin_reg &= ~(ACTIVE_LEVEL_MASK << ACTIVE_LEVEL_OFF);
         pin_reg |= ACTIVE_LOW << ACTIVE_LEVEL_OFF;
-        // irq_set_handler_locked(d, handle_level_irq);
         break;
 
     case IRQ_TYPE_NONE:
-        // irq_set_handler_locked(d, handle_bad_irq);
         break;
 
     default:
@@ -152,7 +136,7 @@ int VoodooGPIOAMD::amd_gpio_irq_set_type(unsigned pin, unsigned int type) {
 #define PIN_IRQ_PENDING	(BIT(INTERRUPT_STS_OFF) | BIT(WAKE_STS_OFF))
 
 bool VoodooGPIOAMD::do_amd_gpio_irq_handler(int irq) {
-    unsigned int i, irqnr;
+    UInt32 i, irqnr;
     bool ret = false;
     UInt32 regval;
     UInt64 status, mask;
@@ -168,18 +152,18 @@ bool VoodooGPIOAMD::do_amd_gpio_irq_handler(int irq) {
     for (mask = 1, irqnr = 0; status; mask <<= 1, regs += 4, irqnr += 4) {
         if (!(status & mask))
             continue;
+
         status &= ~mask;
 
         /* Each status bit covers four pins */
         for (i = 0; i < 4; i++) {
             regval = readl(regs + i);
 
-            if (regval & PIN_IRQ_PENDING)
-                TryLog("%s::VoodooGPIO: GPIO %d is active: 0x%x\n", this->getName(), irqnr + i, regval);
-
             /* caused wake on resume context for shared IRQ */
-            if (irq < 0 && (regval & BIT(WAKE_STS_OFF)))
+            if (irq < 0 && (regval & BIT(WAKE_STS_OFF))) {
+                TryLog("%s::VoodooGPIO Waking due to GPIO %d: 0x%x\n", this->getName(), irqnr + i, regval);
                 return true;
+            }
 
             if (!(regval & PIN_IRQ_PENDING) ||
                 !(regval & BIT(INTERRUPT_MASK_OFF)))
@@ -351,8 +335,8 @@ IOReturn VoodooGPIOAMD::enableInterrupt(int pin) {
         return kIOReturnNoInterrupt;
 
     if (this->pinInterruptActionOwners[pin]) {
-        this->amd_gpio_irq_set_type(pin, this->interruptTypes[pin]);
         this->amd_gpio_irq_enable(pin);
+        this->amd_gpio_irq_set_type(pin, this->interruptTypes[pin]);
         this->amd_gpio_irq_unmask(pin);
         return this->getProvider()->enableInterrupt(0);
     }
