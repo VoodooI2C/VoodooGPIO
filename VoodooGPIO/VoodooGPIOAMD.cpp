@@ -72,34 +72,28 @@ int VoodooGPIOAMD::amd_gpio_irq_set_type(unsigned pin, unsigned int type) {
         pin_reg &= ~(ACTIVE_LEVEL_MASK << ACTIVE_LEVEL_OFF);
         pin_reg |= ACTIVE_HIGH << ACTIVE_LEVEL_OFF;
         break;
-
     case IRQ_TYPE_EDGE_FALLING:
         pin_reg &= ~BIT(LEVEL_TRIG_OFF);
         pin_reg &= ~(ACTIVE_LEVEL_MASK << ACTIVE_LEVEL_OFF);
         pin_reg |= ACTIVE_LOW << ACTIVE_LEVEL_OFF;
         break;
-
     case IRQ_TYPE_EDGE_BOTH:
         pin_reg &= ~BIT(LEVEL_TRIG_OFF);
         pin_reg &= ~(ACTIVE_LEVEL_MASK << ACTIVE_LEVEL_OFF);
         pin_reg |= BOTH_EADGE << ACTIVE_LEVEL_OFF;
         break;
-
     case IRQ_TYPE_LEVEL_HIGH:
         pin_reg |= LEVEL_TRIGGER << LEVEL_TRIG_OFF;
         pin_reg &= ~(ACTIVE_LEVEL_MASK << ACTIVE_LEVEL_OFF);
         pin_reg |= ACTIVE_HIGH << ACTIVE_LEVEL_OFF;
         break;
-
     case IRQ_TYPE_LEVEL_LOW:
         pin_reg |= LEVEL_TRIGGER << LEVEL_TRIG_OFF;
         pin_reg &= ~(ACTIVE_LEVEL_MASK << ACTIVE_LEVEL_OFF);
         pin_reg |= ACTIVE_LOW << ACTIVE_LEVEL_OFF;
         break;
-
     case IRQ_TYPE_NONE:
         break;
-
     default:
         TryLog("%s::VoodooGPIO Invalid type value\n", this->getName());
         ret = -1;
@@ -148,7 +142,7 @@ bool VoodooGPIOAMD::do_amd_gpio_irq_handler(int irq) {
 
     /* Bit 0-45 contain the relevant status bits */
     status &= (1ULL << 46) - 1;
-    IOVirtualAddress regs = this->base;
+    UInt32* regs = (UInt32*)this->base;
     for (mask = 1, irqnr = 0; status; mask <<= 1, regs += 4, irqnr += 4) {
         if (!(status & mask))
             continue;
@@ -157,7 +151,7 @@ bool VoodooGPIOAMD::do_amd_gpio_irq_handler(int irq) {
 
         /* Each status bit covers four pins */
         for (i = 0; i < 4; i++) {
-            regval = readl(regs + i);
+            regval = readl((IOVirtualAddress)(regs + i));
 
             /* caused wake on resume context for shared IRQ */
             if (irq < 0 && (regval & BIT(WAKE_STS_OFF))) {
@@ -169,17 +163,16 @@ bool VoodooGPIOAMD::do_amd_gpio_irq_handler(int irq) {
                 !(regval & BIT(INTERRUPT_MASK_OFF)))
                 continue;
 
-            // generic_handle_domain_irq_safe(gc->irq.domain, irqnr + i);
-            unsigned pin = irqnr + i;
+            UInt32 pin = irqnr + i;
             if (pin >= this->npins)
                 break;
 
-            OSObject *owner = this->pinInterruptActionOwners[pin];
-            if (owner) {
-                IOInterruptAction handler = this->pinInterruptAction[pin];
-                void *refcon = this->pinInterruptRefcons[pin];
-                handler(owner, refcon, this, pin);
-            }
+            if (OSObject *owner = this->pinInterruptActionOwners[pin])
+                this->pinInterruptAction[pin](owner, this->pinInterruptRefcons[pin], this, pin);
+
+            // For Level interrupts, we need to clear the interrupt status or we get too many interrupts
+            if (this->interruptTypes[pin] & IRQ_TYPE_LEVEL_MASK)
+                this->amd_gpio_irq_unmask(pin);
 
             /* Clear interrupt.
              * We must read the pin register again, in case the
@@ -189,12 +182,12 @@ bool VoodooGPIOAMD::do_amd_gpio_irq_handler(int irq) {
              * disable it in order to avoid a system hang caused
              * by an interrupt storm.
              */
-            regval = readl(regs + i);
+            regval = readl((IOVirtualAddress)(regs + i));
             if (irq == 0) {
                 regval &= ~BIT(INTERRUPT_ENABLE_OFF);
                 TryLog("%s::VoodooGPIO: Disabling spurious GPIO IRQ %d\n", this->getName(), irqnr + i);
             }
-            writel(regval, regs + i);
+            writel(regval, (IOVirtualAddress)(regs + i));
 
             ret = true;
         }
