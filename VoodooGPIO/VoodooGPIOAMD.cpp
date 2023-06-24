@@ -264,11 +264,7 @@ int VoodooGPIOAMD::amd_gpio_resume() {
 }
 
 void VoodooGPIOAMD::InterruptOccurred(void *refCon, IOService *nub, int source) {
-    for (int i = 0; i < this->registered_pin_list->getCount(); i++) {
-        if (OSNumber* registered_pin = OSDynamicCast(OSNumber, this->registered_pin_list->getObject(i))) {
-            this->do_amd_gpio_irq_handler(registered_pin->unsigned32BitValue());
-        }
-    }
+    this->do_amd_gpio_irq_handler(source);
 }
 
 /**
