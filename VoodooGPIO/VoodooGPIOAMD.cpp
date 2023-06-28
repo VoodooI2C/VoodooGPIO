@@ -357,7 +357,7 @@ bool VoodooGPIOAMD::start(IOService *provider) {
 
     this->isInterruptBusy = true;
 
-    this->workLoop = getWorkLoop();
+    this->workLoop = VoodooGPIO::getWorkLoop();
     if (!this->workLoop) {
         IOLog("%s::Failed to get workloop!\n", this->getName());
         stop(provider);

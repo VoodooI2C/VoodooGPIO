@@ -78,7 +78,7 @@ protected:
     OSArray* registered_pin_list = nullptr;
     bool isInterruptBusy = false;
 
-    virtual IOWorkLoop* getWorkLoop() override;
+    IOWorkLoop* getWorkLoop();
 
 public:
     virtual IOReturn setInterruptTypeForPin(int pin, int type) = 0;

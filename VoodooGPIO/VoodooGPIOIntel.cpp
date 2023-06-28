@@ -153,13 +153,13 @@ bool VoodooGPIOIntel::intel_pad_acpi_mode(unsigned pin) {
     UInt32 hostownval = readl(hostown);
     if ((hostownval & BIT(gpp_offset)) == 0) {
         IOLog("%s::Pin owned by ACPI...Attempting to take ownership\n", getName());
-        
+
         hostownval |= BIT(gpp_offset);
         writel(hostownval, hostown);
     } else {
         return false;
     }
-    
+
     // Second read to double check we actually got ownership
     return !(readl(hostown) & BIT(gpp_offset));
 }
@@ -612,7 +612,7 @@ bool VoodooGPIOIntel::start(IOService *provider) {
 
     isInterruptBusy = true;
 
-    workLoop = getWorkLoop();
+    workLoop = VoodooGPIO::getWorkLoop();
     if (!workLoop) {
         IOLog("%s::Failed to get workloop!\n", getName());
         stop(provider);
