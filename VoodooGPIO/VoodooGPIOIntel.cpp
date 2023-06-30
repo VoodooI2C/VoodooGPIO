@@ -622,7 +622,6 @@ bool VoodooGPIOIntel::start(IOService *provider) {
     command_gate = IOCommandGate::commandGate(this);
     if (!command_gate || (workLoop->addEventSource(command_gate) != kIOReturnSuccess)) {
         IOLog("%s Could not open command gate\n", getName());
-        stop(provider);
         return false;
     }
 

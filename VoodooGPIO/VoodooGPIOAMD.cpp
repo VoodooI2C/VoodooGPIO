@@ -367,7 +367,6 @@ bool VoodooGPIOAMD::start(IOService *provider) {
     this->command_gate = IOCommandGate::commandGate(this);
     if (!this->command_gate || (this->workLoop->addEventSource(this->command_gate) != kIOReturnSuccess)) {
         IOLog("%s Could not open command gate\n", this->getName());
-        stop(provider);
         return false;
     }
 
@@ -376,7 +375,6 @@ bool VoodooGPIOAMD::start(IOService *provider) {
     this->saved_regs = IONewZero(UInt32, this->npins);
     if (!this->saved_regs) {
         IOLog("%s::Failed to allocate saved_regs!\n", this->getName());
-        stop(provider);
         return false;
     }
 
