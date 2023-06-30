@@ -360,6 +360,7 @@ bool VoodooGPIOAMD::start(IOService *provider) {
     workLoop = IOWorkLoop::workLoop();
     if (!workLoop) {
         IOLog("%s::Failed to set workloop!\n", getName());
+        stop(provider);
         return false;
     }
     workLoop->retain();
@@ -367,6 +368,7 @@ bool VoodooGPIOAMD::start(IOService *provider) {
     this->command_gate = IOCommandGate::commandGate(this);
     if (!this->command_gate || (this->workLoop->addEventSource(this->command_gate) != kIOReturnSuccess)) {
         IOLog("%s Could not open command gate\n", this->getName());
+        stop(provider);
         return false;
     }
 
@@ -375,6 +377,7 @@ bool VoodooGPIOAMD::start(IOService *provider) {
     this->saved_regs = IONew(UInt32, this->npins);
     if (!this->saved_regs) {
         IOLog("%s::Failed to allocate saved_regs!\n", this->getName());
+        stop(provider);
         return false;
     }
     memset(this->saved_regs, 0, sizeof(UInt32) * this->npins);
@@ -382,6 +385,7 @@ bool VoodooGPIOAMD::start(IOService *provider) {
     this->mmap = provider->mapDeviceMemoryWithIndex(0);
     if (!this->mmap) {
         IOLog("%s:VoodooGPIO error mapping base 0\n", this->getName());
+        stop(provider);
         return false;
     }
     this->base = this->mmap->getVirtualAddress();
@@ -389,6 +393,7 @@ bool VoodooGPIOAMD::start(IOService *provider) {
     this->registered_pin_list = OSArray::withCapacity(2);
     if (!this->registered_pin_list) {
         IOLog("%s::Failed to allocate registered_pin_list!\n", this->getName());
+        stop(provider);
         return false;
     }
 
@@ -398,6 +403,7 @@ bool VoodooGPIOAMD::start(IOService *provider) {
     this->pinInterruptActionOwners = IONew(OSObject*, this->npins);
     if (!this->pinInterruptActionOwners) {
         IOLog("%s::Failed to allocate pinInterruptActionOwners!\n", this->getName());
+        stop(provider);
         return false;
     }
     memset(this->pinInterruptActionOwners, 0, sizeof(OSObject*) * this->npins);
@@ -405,6 +411,7 @@ bool VoodooGPIOAMD::start(IOService *provider) {
     this->pinInterruptAction = IONew(IOInterruptAction, this->npins);
     if (!this->pinInterruptAction) {
         IOLog("%s::Failed to allocate pinInterruptAction!\n", this->getName());
+        stop(provider);
         return false;
     }
     memset(this->pinInterruptAction, 0, sizeof(IOInterruptAction) * this->npins);
@@ -412,6 +419,7 @@ bool VoodooGPIOAMD::start(IOService *provider) {
     this->interruptTypes = IONew(unsigned, this->npins);
     if (!this->interruptTypes) {
         IOLog("%s::Failed to allocate interruptTypes!\n", this->getName());
+        stop(provider);
         return false;
     }
     memset(this->interruptTypes, 0, sizeof(unsigned) * this->npins);
@@ -419,6 +427,7 @@ bool VoodooGPIOAMD::start(IOService *provider) {
     this->pinInterruptRefcons = IONew(void *, this->npins);
     if (!this->pinInterruptRefcons) {
         IOLog("%s::Failed to allocate pinInterruptRefcons!\n", this->getName());
+        stop(provider);
         return false;
     }
     memset(this->pinInterruptRefcons, 0, sizeof(void *) * this->npins);
@@ -457,20 +466,20 @@ void VoodooGPIOAMD::stop(IOService *provider) {
     IOLog("%s::VoodooGPIO stop!\n", this->getName());
 
     if (this->command_gate) {
-        this->workLoop->removeEventSource(this->command_gate);
-        OSSafeReleaseNULL(this->command_gate);
+        if (this->workLoop) {
+            this->workLoop->removeEventSource(this->command_gate);
+        }
+        this->command_gate->release();
     }
 
-    if (this->mmap) {
-        OSSafeReleaseNULL(mmap);
-    }
+    OSSafeReleaseNULL(mmap);
 
     if (this->registered_pin_list) {
         if (this->registered_pin_list->getCount() > 0) {
             IOLog("%s::Interrupt has not been unregistered by client\n", this->getName());
             this->getProvider()->unregisterInterrupt(0);
         }
-        OSSafeReleaseNULL(this->registered_pin_list);
+        this->registered_pin_list->release();
     }
 
     IOSafeDeleteNULL(this->pinInterruptActionOwners, OSObject*, this->npins);

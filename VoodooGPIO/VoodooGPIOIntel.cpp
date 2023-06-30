@@ -615,6 +615,7 @@ bool VoodooGPIOIntel::start(IOService *provider) {
     workLoop = IOWorkLoop::workLoop();
     if (!workLoop) {
         IOLog("%s::Failed to set workloop!\n", getName());
+        stop(provider);
         return false;
     }
     workLoop->retain();
@@ -622,6 +623,7 @@ bool VoodooGPIOIntel::start(IOService *provider) {
     command_gate = IOCommandGate::commandGate(this);
     if (!command_gate || (workLoop->addEventSource(command_gate) != kIOReturnSuccess)) {
         IOLog("%s Could not open command gate\n", getName());
+        stop(provider);
         return false;
     }
 
@@ -664,41 +666,40 @@ bool VoodooGPIOIntel::start(IOService *provider) {
         if (!intel_pinctrl_add_padgroups(community)) {
             IOLog("%s::Error adding padgroups to community %d\n", getName(), i);
         }
-    }
 
     for (int i = 0; i < ncommunities; i++) {
         communities[i].pinInterruptActionOwners = IONew(OSObject*, communities[i].npins);
         if (!communities[i].pinInterruptActionOwners) {
             IOLog("%s::Error allocating pinInterruptActionOwners for community %d\n", getName(), i);
-            return false;
+            continue;
         }
         memset(communities[i].pinInterruptActionOwners, 0, sizeof(OSObject *) * communities[i].npins);
 
         communities[i].pinInterruptAction = IONew(IOInterruptAction, communities[i].npins);
         if (!communities[i].pinInterruptAction) {
             IOLog("%s::Error allocating pinInterruptAction for community %d\n", getName(), i);
-            return false;
+            continue;
         }
         memset(communities[i].pinInterruptAction, 0, sizeof(IOInterruptAction) * communities[i].npins);
 
         communities[i].interruptTypes = IONew(unsigned, communities[i].npins);
         if (!communities[i].interruptTypes) {
             IOLog("%s::Error allocating interruptTypes for community %d\n", getName(), i);
-            return false;
+            continue;
         }
         memset(communities[i].interruptTypes, 0, sizeof(unsigned) * communities[i].npins);
 
         communities[i].pinInterruptRefcons = IONew(void *, communities[i].npins);
         if (!communities[i].pinInterruptRefcons) {
             IOLog("%s::Error allocating pinInterruptRefcons for community %d\n", getName(), i);
-            return false;
+            continue;
         }
         memset(communities[i].pinInterruptRefcons, 0, sizeof(void *) * communities[i].npins);
 
         communities[i].isActiveCommunity = IONew(bool, 1);
         if (!communities[i].isActiveCommunity) {
             IOLog("%s::Error allocating isActiveCommunity for community %d\n", getName(), i);
-            return false;
+            continue;
         }
         *communities[i].isActiveCommunity = false;
     }
@@ -706,6 +707,7 @@ bool VoodooGPIOIntel::start(IOService *provider) {
 
     registered_pin_list = OSArray::withCapacity(2);
     if (!registered_pin_list) {
+        stop(provider);
         return false;
     }
 
@@ -722,7 +724,7 @@ bool VoodooGPIOIntel::start(IOService *provider) {
 
     static IOPMPowerState myPowerStates[kMyNumberOfStates];
     // Zero-fill the structures.
-    bzero (myPowerStates, sizeof(myPowerStates));
+    bzero(myPowerStates, sizeof(myPowerStates));
     // Fill in the information about your device's off state:
     myPowerStates[0].version = 1;
     myPowerStates[0].capabilityFlags = kIOPMPowerOff;
@@ -745,9 +747,11 @@ bool VoodooGPIOIntel::start(IOService *provider) {
 void VoodooGPIOIntel::stop(IOService *provider) {
     IOLog("%s::VoodooGPIO stop!\n", getName());
 
-    if (command_gate) {
-        workLoop->removeEventSource(command_gate);
-        OSSafeReleaseNULL(command_gate);
+    if (this->command_gate) {
+        if (this->workLoop) {
+            this->workLoop->removeEventSource(this->command_gate);
+        }
+        this->command_gate->release();
     }
 
     intel_pinctrl_pm_release();
@@ -762,6 +766,7 @@ void VoodooGPIOIntel::stop(IOService *provider) {
         IOSafeDeleteNULL(communities[i].interruptTypes, unsigned, communities[i].npins);
         IOSafeDeleteNULL(communities[i].pinInterruptRefcons, void*, communities[i].npins);
         IOSafeDeleteNULL(communities[i].isActiveCommunity, bool, 1);
+        OSSafeReleaseNULL(communities[i].mmap);
     }
 
     if (registered_pin_list) {
@@ -769,7 +774,7 @@ void VoodooGPIOIntel::stop(IOService *provider) {
             IOLog("%s::Interrupt has not been unregistered by client\n", getName());
             getProvider()->unregisterInterrupt(0);
         }
-        OSSafeReleaseNULL(registered_pin_list);
+        this->registered_pin_list->release();
     }
 
     OSSafeReleaseNULL(workLoop);
