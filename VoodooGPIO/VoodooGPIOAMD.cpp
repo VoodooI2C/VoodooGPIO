@@ -372,11 +372,12 @@ bool VoodooGPIOAMD::start(IOService *provider) {
 
     IOLog("%s::VoodooGPIO Init!\n", this->getName());
 
-    this->saved_regs = IONewZero(UInt32, this->npins);
+    this->saved_regs = IONew(UInt32, this->npins);
     if (!this->saved_regs) {
         IOLog("%s::Failed to allocate saved_regs!\n", this->getName());
         return false;
     }
+    memset(this->saved_regs, 0, sizeof(UInt32) * this->npins);
 
     this->mmap = provider->mapDeviceMemoryWithIndex(0);
     if (!this->mmap) {
@@ -394,14 +395,33 @@ bool VoodooGPIOAMD::start(IOService *provider) {
     this->isInterruptBusy = false;
     this->controllerIsAwake = true;
 
-    pinInterruptActionOwners = IONew(OSObject*, npins);
-    memset(pinInterruptActionOwners, 0, sizeof(OSObject*) * npins);
-    pinInterruptAction = IONew(IOInterruptAction, npins);
-    memset(pinInterruptAction, 0, sizeof(IOInterruptAction) * npins);
-    interruptTypes = IONew(unsigned, npins);
-    memset(interruptTypes, 0, sizeof(unsigned) * npins);
-    pinInterruptRefcons = IONew(void *, npins);
-    memset(pinInterruptRefcons, 0, sizeof(void *) * npins);
+    this->pinInterruptActionOwners = IONew(OSObject*, this->npins);
+    if (!this->pinInterruptActionOwners) {
+        IOLog("%s::Failed to allocate pinInterruptActionOwners!\n", this->getName());
+        return false;
+    }
+    memset(this->pinInterruptActionOwners, 0, sizeof(OSObject*) * this->npins);
+
+    this->pinInterruptAction = IONew(IOInterruptAction, this->npins);
+    if (!this->pinInterruptAction) {
+        IOLog("%s::Failed to allocate pinInterruptAction!\n", this->getName());
+        return false;
+    }
+    memset(this->pinInterruptAction, 0, sizeof(IOInterruptAction) * this->npins);
+
+    this->interruptTypes = IONew(unsigned, this->npins);
+    if (!this->interruptTypes) {
+        IOLog("%s::Failed to allocate interruptTypes!\n", this->getName());
+        return false;
+    }
+    memset(this->interruptTypes, 0, sizeof(unsigned) * this->npins);
+
+    this->pinInterruptRefcons = IONew(void *, this->npins);
+    if (!this->pinInterruptRefcons) {
+        IOLog("%s::Failed to allocate pinInterruptRefcons!\n", this->getName());
+        return false;
+    }
+    memset(this->pinInterruptRefcons, 0, sizeof(void *) * this->npins);
 
     this->amd_gpio_irq_init();
 
