@@ -596,7 +596,7 @@ bool VoodooGPIOIntel::init(OSDictionary* properties) {
     if (!IOService::init(properties))
         return false;
 
-    memset(&(this->context), 0, sizeof(intel_pinctrl_context));
+    memset(&context, 0, sizeof(intel_pinctrl_context));
 
     return true;
 }
@@ -668,23 +668,39 @@ bool VoodooGPIOIntel::start(IOService *provider) {
     }
 
     for (int i = 0; i < ncommunities; i++) {
-        size_t sz = sizeof(OSObject *) * communities[i].npins;
-        communities[i].pinInterruptActionOwners = (OSObject **)IOMalloc(sz);
-        memset(communities[i].pinInterruptActionOwners, 0, sz);
+        communities[i].pinInterruptActionOwners = IONew(OSObject*, communities[i].npins);
+        if (!communities[i].pinInterruptActionOwners) {
+            IOLog("%s::Error allocating pinInterruptActionOwners for community %d\n", getName(), i);
+            return false;
+        }
+        memset(communities[i].pinInterruptActionOwners, 0, sizeof(OSObject *) * communities[i].npins);
 
-        sz = sizeof(IOInterruptAction) * communities[i].npins;
-        communities[i].pinInterruptAction = (IOInterruptAction *)IOMalloc(sz);
-        memset(communities[i].pinInterruptAction, 0, sz);
+        communities[i].pinInterruptAction = IONew(IOInterruptAction, communities[i].npins);
+        if (!communities[i].pinInterruptAction) {
+            IOLog("%s::Error allocating pinInterruptAction for community %d\n", getName(), i);
+            return false;
+        }
+        memset(communities[i].pinInterruptAction, 0, sizeof(IOInterruptAction) * communities[i].npins);
 
-        sz = sizeof(unsigned) * communities[i].npins;
-        communities[i].interruptTypes = (unsigned *)IOMalloc(sz);
-        memset(communities[i].interruptTypes, 0, sz);
+        communities[i].interruptTypes = IONew(unsigned, communities[i].npins);
+        if (!communities[i].interruptTypes) {
+            IOLog("%s::Error allocating interruptTypes for community %d\n", getName(), i);
+            return false;
+        }
+        memset(communities[i].interruptTypes, 0, sizeof(unsigned) * communities[i].npins);
 
-        sz = sizeof(void *) * communities[i].npins;
-        communities[i].pinInterruptRefcons = (void **)IOMalloc(sz);
-        memset(communities[i].pinInterruptRefcons, 0, sz);
+        communities[i].pinInterruptRefcons = IONew(void *, communities[i].npins);
+        if (!communities[i].pinInterruptRefcons) {
+            IOLog("%s::Error allocating pinInterruptRefcons for community %d\n", getName(), i);
+            return false;
+        }
+        memset(communities[i].pinInterruptRefcons, 0, sizeof(void *) * communities[i].npins);
 
         communities[i].isActiveCommunity = IONew(bool, 1);
+        if (!communities[i].isActiveCommunity) {
+            IOLog("%s::Error allocating isActiveCommunity for community %d\n", getName(), i);
+            return false;
+        }
         *communities[i].isActiveCommunity = false;
     }
     nInactiveCommunities = (UInt32)ncommunities - 1;
