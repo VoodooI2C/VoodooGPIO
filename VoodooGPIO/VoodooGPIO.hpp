@@ -70,7 +70,7 @@ class VoodooGPIO : public IOService {
 
 protected:
     const struct pinctrl_pin_desc *pins = nullptr;
-    size_t npins { 0 };
+    size_t npins {0};
     bool controllerIsAwake = false;
 
     IOWorkLoop *workLoop = nullptr;
@@ -78,7 +78,7 @@ protected:
     OSArray* registered_pin_list = nullptr;
     bool isInterruptBusy = false;
 
-    IOWorkLoop* getWorkLoop();
+    IOWorkLoop* getWorkLoop() const override;
 
 public:
     virtual IOReturn setInterruptTypeForPin(int pin, int type) = 0;

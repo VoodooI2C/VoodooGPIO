@@ -612,10 +612,9 @@ bool VoodooGPIOIntel::start(IOService *provider) {
 
     isInterruptBusy = true;
 
-    workLoop = VoodooGPIO::getWorkLoop();
+    workLoop = IOWorkLoop::workLoop();
     if (!workLoop) {
-        IOLog("%s::Failed to get workloop!\n", getName());
-        stop(provider);
+        IOLog("%s::Failed to set workloop!\n", getName());
         return false;
     }
     workLoop->retain();

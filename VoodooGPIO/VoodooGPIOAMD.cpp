@@ -357,10 +357,9 @@ bool VoodooGPIOAMD::start(IOService *provider) {
 
     this->isInterruptBusy = true;
 
-    this->workLoop = VoodooGPIO::getWorkLoop();
-    if (!this->workLoop) {
-        IOLog("%s::Failed to get workloop!\n", this->getName());
-        stop(provider);
+    workLoop = IOWorkLoop::workLoop();
+    if (!workLoop) {
+        IOLog("%s::Failed to set workloop!\n", getName());
         return false;
     }
     workLoop->retain();
@@ -397,10 +396,14 @@ bool VoodooGPIOAMD::start(IOService *provider) {
     this->isInterruptBusy = false;
     this->controllerIsAwake = true;
 
-    this->pinInterruptActionOwners = IONewZero(OSObject*, this->npins);
-    this->pinInterruptAction = IONewZero(IOInterruptAction, this->npins);
-    this->interruptTypes = IONewZero(unsigned, this->npins);
-    this->pinInterruptRefcons = IONewZero(void *, this->npins);
+    pinInterruptActionOwners = IONew(OSObject*, npins);
+    memset(pinInterruptActionOwners, 0, sizeof(OSObject*) * npins);
+    pinInterruptAction = IONew(IOInterruptAction, npins);
+    memset(pinInterruptAction, 0, sizeof(IOInterruptAction) * npins);
+    interruptTypes = IONew(unsigned, npins);
+    memset(interruptTypes, 0, sizeof(unsigned) * npins);
+    pinInterruptRefcons = IONew(void *, npins);
+    memset(pinInterruptRefcons, 0, sizeof(void *) * npins);
 
     this->amd_gpio_irq_init();
 

@@ -1629,17 +1629,17 @@ class VoodooGPIOAMD : public VoodooGPIO {
 
 private:
     const struct pingroup *groups = nullptr;
-    size_t ngroups { 0 };
+    size_t ngroups {0};
     const struct amd_function *functions = nullptr;
-    size_t nfunctions { 0 };
+    size_t nfunctions {0};
     UInt32 *saved_regs = nullptr;
-    int irq { -1 };
+    int irq {-1};
     IOMemoryMap *mmap = nullptr;
-    IOVirtualAddress base {};
-    unsigned *interruptTypes;
-    OSObject **pinInterruptActionOwners;
-    IOInterruptAction *pinInterruptAction;
-    void **pinInterruptRefcons;
+    IOVirtualAddress base {0};
+    unsigned *interruptTypes = nullptr;
+    OSObject **pinInterruptActionOwners = nullptr;
+    IOInterruptAction *pinInterruptAction = nullptr;
+    void **pinInterruptRefcons = nullptr;
 
     void amd_gpio_irq_enable(unsigned pin);
     void amd_gpio_irq_disable(unsigned pin);
