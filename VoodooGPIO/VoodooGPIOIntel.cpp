@@ -751,7 +751,7 @@ void VoodooGPIOIntel::stop(IOService *provider) {
         if (this->workLoop) {
             this->workLoop->removeEventSource(this->command_gate);
         }
-        this->command_gate->release();
+        OSSafeReleaseNULL(this->command_gate);
     }
 
     intel_pinctrl_pm_release();
@@ -774,7 +774,7 @@ void VoodooGPIOIntel::stop(IOService *provider) {
             IOLog("%s::Interrupt has not been unregistered by client\n", getName());
             getProvider()->unregisterInterrupt(0);
         }
-        this->registered_pin_list->release();
+        OSSafeReleaseNULL(this->registered_pin_list);
     }
 
     OSSafeReleaseNULL(workLoop);

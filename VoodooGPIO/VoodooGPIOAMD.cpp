@@ -469,7 +469,7 @@ void VoodooGPIOAMD::stop(IOService *provider) {
         if (this->workLoop) {
             this->workLoop->removeEventSource(this->command_gate);
         }
-        this->command_gate->release();
+        OSSafeReleaseNULL(this->command_gate);
     }
 
     OSSafeReleaseNULL(mmap);
@@ -479,7 +479,7 @@ void VoodooGPIOAMD::stop(IOService *provider) {
             IOLog("%s::Interrupt has not been unregistered by client\n", this->getName());
             this->getProvider()->unregisterInterrupt(0);
         }
-        this->registered_pin_list->release();
+        OSSafeReleaseNULL(this->registered_pin_list);
     }
 
     IOSafeDeleteNULL(this->pinInterruptActionOwners, OSObject*, this->npins);
