@@ -666,6 +666,7 @@ bool VoodooGPIOIntel::start(IOService *provider) {
         if (!intel_pinctrl_add_padgroups(community)) {
             IOLog("%s::Error adding padgroups to community %d\n", getName(), i);
         }
+    }
 
     for (int i = 0; i < ncommunities; i++) {
         communities[i].pinInterruptActionOwners = IONew(OSObject*, communities[i].npins);
