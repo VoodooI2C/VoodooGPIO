@@ -71,6 +71,8 @@ struct intel_padgroup {
  *                  is assumed that the host owns the pin (rather than
  *                  ACPI).
  * @ie_offset: Register offset of GPI_IE from @regs.
+ * @is_offset: Register offset of GPI_IS from @regs. If %0 then the
+ *             legacy %GPI_IS offset (0x100) is assumed.
  * @pin_base: Starting pin of pins in this community
  * @gpp_size: Maximum number of pads in each group, such as PADCFGLOCK,
  *            HOSTSW_OWN,  GPI_IS, GPI_IE, etc. Used when @gpps is %NULL.
@@ -96,6 +98,7 @@ struct intel_community {
     unsigned padcfglock_offset;
     unsigned hostown_offset;
     unsigned ie_offset;
+    unsigned is_offset;
     unsigned pin_base;
     unsigned gpp_size;
     unsigned gpp_num_padown_regs;

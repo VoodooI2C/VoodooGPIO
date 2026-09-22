@@ -17,6 +17,15 @@
 #define PADBAR              0x00c
 #define GPI_IS              0x100
 
+/*
+ * GPI_IS is at 0x100 on every community up to Tiger Lake; newer PCHs move it
+ * (Alder Lake-S: 0x200). A community that leaves is_offset at 0 keeps the
+ * legacy offset, so existing pin tables need no change.
+ */
+static inline unsigned intel_gpi_is_offset(const struct intel_community *community) {
+    return community->is_offset ? community->is_offset : GPI_IS;
+}
+
 #define PADOWN_BITS         4
 #define PADOWN_SHIFT(p)     ((p) % 8 * PADOWN_BITS)
 #define PADOWN_MASK(p)      (GENMASK(3, 0) << PADOWN_SHIFT(p))
@@ -282,7 +291,7 @@ void VoodooGPIOIntel::intel_gpio_irq_mask_unmask(unsigned pin, bool mask) {
         gpp_offset = padgroup_offset(padgrp, pin);
 
         reg = community->regs + community->ie_offset + gpp * 4;
-        is = community->regs + GPI_IS + gpp * 4;
+        is = community->regs + intel_gpi_is_offset(community) + gpp * 4;
 
         /* Clear interrupt status first to avoid unexpected interrupt */
         writel(static_cast<UInt32>(BIT(gpp_offset)), is);
@@ -490,7 +499,7 @@ void VoodooGPIOIntel::intel_gpio_irq_init() {
         for (unsigned gpp = 0; gpp < community->ngpps; gpp++) {
             /* Mask and clear all interrupts */
             writel(0, base + community->ie_offset + gpp * 4);
-            writel(0xffff, base + GPI_IS + gpp * 4);
+            writel(0xffff, base + intel_gpi_is_offset(community) + gpp * 4);
         }
     }
 }
@@ -810,7 +819,7 @@ void VoodooGPIOIntel::intel_gpio_community_irq_handler(struct intel_community *c
 
         unsigned long pending, enabled;
 
-        pending = readl(community->regs + GPI_IS + padgrp->reg_num * 4);
+        pending = readl(community->regs + intel_gpi_is_offset(community) + padgrp->reg_num * 4);
         enabled = readl(community->regs + community->ie_offset +
                         padgrp->reg_num * 4);
 
@@ -853,7 +862,7 @@ void VoodooGPIOIntel::intel_gpio_pin_irq_handler(unsigned hw_pin) {
     }
 
     unsigned long pending, enabled;
-    IOVirtualAddress pending_address = community->regs + GPI_IS + pad_group->reg_num * 4;
+    IOVirtualAddress pending_address = community->regs + intel_gpi_is_offset(community) + pad_group->reg_num * 4;
     pending = readl(pending_address);
     enabled = readl(community->regs + community->ie_offset + pad_group->reg_num * 4);
 
