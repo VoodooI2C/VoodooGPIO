@@ -880,8 +880,15 @@ void VoodooGPIOIntel::intel_gpio_pin_irq_handler(unsigned hw_pin) {
         handler(owner, refcon, this, pad_group_i + pad_group->gpio_base);
     }
 
-    /* Clear interrupt status */
-    writel(static_cast<UInt32>(BIT(pad_group_i)), pending_address);
+    if (community->interruptTypes[community_i] & IRQ_TYPE_LEVEL_MASK) {
+        /* For level interrupts, clearing IS alone can leave the level
+         * latch disabled and lose subsequent input reports. Mask/unmask
+         * clears the status and re-arms the pin. */
+        intel_gpio_irq_mask_unmask(hw_pin, false);
+    } else {
+        /* Clear interrupt status */
+        writel(static_cast<UInt32>(BIT(pad_group_i)), pending_address);
+    }
 }
 
 /**
