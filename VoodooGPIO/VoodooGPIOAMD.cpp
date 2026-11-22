@@ -8,9 +8,27 @@
 //
 
 #include "VoodooGPIOAMD.hpp"
+#include <libkern/OSAtomic.h>
 
 #define GPIO_LINE_DIRECTION_IN	1
 #define GPIO_LINE_DIRECTION_OUT	0
+
+/*
+ * Missed-EOI workaround (see enableInterrupt()).
+ *
+ * The GPIO controller waits for an end-of-interrupt (WAKE_INT_MASTER_REG bit 29) after every
+ * interrupt it delivers. Clients (VoodooI2CHID) mask the controller's interrupt vector around
+ * each report read, and a delivery that happens while the vector is masked never reaches
+ * do_amd_gpio_irq_handler(), so nobody sends its EOI and the controller never raises another
+ * interrupt (the touchpad dies until reboot).
+ *
+ *  gInHandler       > 0 while do_amd_gpio_irq_handler() is running.
+ *  gHandlerEntries  number of times the handler was entered.
+ *  gEoiRecoveries   number of swallowed deliveries repaired (exposed as the EoiRecoveries property).
+ */
+static volatile SInt32 gInHandler = 0;
+static volatile SInt32 gHandlerEntries = 0;
+static UInt32 gEoiRecoveries = 0;
 
 OSDefineMetaClassAndStructors(VoodooGPIOAMD, VoodooGPIO);
 
@@ -226,7 +244,10 @@ int VoodooGPIOAMD::amd_gpio_resume() {
 }
 
 void VoodooGPIOAMD::InterruptOccurred(void *refCon, IOService *nub, int source) {
+    OSIncrementAtomic(&gHandlerEntries);
+    OSIncrementAtomic(&gInHandler);
     this->do_amd_gpio_irq_handler(source);
+    OSDecrementAtomic(&gInHandler);
 }
 
 /**
@@ -315,7 +336,38 @@ IOReturn VoodooGPIOAMD::enableInterrupt(int pin) {
     this->amd_gpio_irq_enable(pin);
     this->amd_gpio_irq_set_type(pin, this->interruptTypes[pin]);
     this->amd_gpio_irq_unmask(pin);
-    return this->getProvider()->enableInterrupt(0);
+    IOReturn ret = this->getProvider()->enableInterrupt(0);
+
+    /*
+     * If an interrupt was delivered while the vector was disabled, the handler never ran and
+     * never signalled EOI, and the GPIO controller will not raise another interrupt until it
+     * gets one (WAKE_INT_MASTER_REG bit 29 reads 0 while an EOI is outstanding, 1 when idle).
+     * Done after the vector is enabled again so a re-raised interrupt is delivered normally.
+     */
+    if (!(readl(this->base + WAKE_INT_MASTER_REG) & EOI_MASK)) {
+        /*
+         * An EOI is outstanding. While the touchpad is being swiped a new delivery is usually
+         * already in flight here (its handler is running or about to run and will send the EOI
+         * itself, measured: about 40% of calls). A swallowed delivery has no handler coming.
+         * Give a handler up to ~1 ms to show up before deciding.
+         */
+        SInt32 entries0 = gHandlerEntries;
+        bool inFlight = (gInHandler != 0);
+        for (int i = 0; !inFlight && i < 100; i++) {
+            IODelay(10);
+            if (gHandlerEntries != entries0 || gInHandler != 0 ||
+                (readl(this->base + WAKE_INT_MASTER_REG) & EOI_MASK))
+                inFlight = true;
+        }
+
+        if (!inFlight) {
+            this->amd_gpio_irq_eoi();
+            gEoiRecoveries++;
+            this->setProperty("EoiRecoveries", (unsigned long long)gEoiRecoveries, 32);
+        }
+    }
+
+    return ret;
 }
 
 /**
@@ -433,6 +485,9 @@ bool VoodooGPIOAMD::start(IOService *provider) {
     memset(this->pinInterruptRefcons, 0, sizeof(void *) * this->npins);
 
     this->amd_gpio_irq_init();
+
+    this->setProperty("PatchVersion", "eoi-fix-1");
+    this->setProperty("EoiRecoveries", (unsigned long long)0, 32);
 
     this->registerService();
 
